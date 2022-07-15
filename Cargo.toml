@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "ogn_db",
+    "ogn_backend"
+]
