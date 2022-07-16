@@ -42,7 +42,7 @@ pub async fn upload_document(mut files: Multipart, pool: Data<DbPool>) -> actix_
 
 
         let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
-        if ogn_db::document_exists(conn.deref_mut(), id) {
+        if ogn_db::document_exists(conn.deref_mut(), id)? {
             return Err(ErrorBadRequest("bad request"));
         }
 
@@ -61,7 +61,7 @@ pub async fn upload_document(mut files: Multipart, pool: Data<DbPool>) -> actix_
 pub async fn get_document_entry(path: web::Path<(DocumentId, )>, pool: Data<DbPool>) -> actix_web::Result<impl Responder> {
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
     let (id, ) = path.into_inner();
-    let document = ogn_db::get_document(conn.deref_mut(), id);
+    let document = ogn_db::get_document(conn.deref_mut(), id)?;
 
     Ok(web::Json(document))
 }
@@ -70,7 +70,7 @@ pub async fn get_document_entry(path: web::Path<(DocumentId, )>, pool: Data<DbPo
 pub async fn get_idea_entry(path: web::Path<(IdeaId, )>, pool: Data<DbPool>) -> actix_web::Result<impl Responder> {
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
     let (id, ) = path.into_inner();
-    let idea = ogn_db::get_idea(conn.deref_mut(), id);
+    let idea = ogn_db::get_idea(conn.deref_mut(), id)?;
 
     Ok(web::Json(idea))
 }
@@ -80,9 +80,9 @@ pub async fn get_ideas(query_params: web::Query<(i64, i64)>, pool: Data<DbPool>)
     let (page_number, page_size) = query_params.into_inner();
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
-    let ideas = ogn_db::get_ideas(conn.deref_mut(), page_number, page_size);
+    let ideas = ogn_db::get_ideas(conn.deref_mut(), page_number, page_size)?;
 
-    let num_ideas = ogn_db::get_num_ideas(conn.deref_mut());
+    let num_ideas = ogn_db::get_num_ideas(conn.deref_mut())?;
     let num_ideas_left = num_ideas - (page_number * page_size);
 
     let ideas_json = serde_json::json!({
@@ -100,9 +100,9 @@ pub async fn get_documents(query_params: web::Query<(i64, i64)>, pool: Data<DbPo
     let (page_number, page_size) = query_params.into_inner();
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
-    let documents = ogn_db::get_documents(conn.deref_mut(), page_number, page_size);
+    let documents = ogn_db::get_documents(conn.deref_mut(), page_number, page_size)?;
 
-    let num_documents = ogn_db::get_num_documents(conn.deref_mut());
+    let num_documents = ogn_db::get_num_documents(conn.deref_mut())?;
     let num_documents_left = num_documents - (page_number * page_size);
 
     let documents_json = serde_json::json!({
