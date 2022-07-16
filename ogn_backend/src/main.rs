@@ -27,7 +27,19 @@ async fn main() -> anyhow::Result<()> {
     let manager = ConnectionManager::<PgConnection>::new(dotenv!("DATABASE_URL"));
     let pool: DbPool = r2d2::Pool::builder().build(manager)?;
 
-    HttpServer::new(move || App::new().wrap(middleware::Compress::default()).wrap(middleware::Logger::default()).app_data(Data::new(pool.clone())).service(endpoints::upload_document).service(endpoints::get_documents).service(endpoints::get_document_entry).service(endpoints::get_ideas).service(endpoints::get_idea_entry)
+    HttpServer::new(move || App::new()
+        .wrap(middleware::Compress::default())
+        .wrap(middleware::Logger::default())
+        .app_data(Data::new(pool.clone()))
+        .service(actix_files::Files::new(
+            "/static/",
+            dotenv!("DATABASE_DOCUMENT_ROOTDIR"),
+        ))
+        .service(endpoints::upload_document)
+        .service(endpoints::get_documents)
+        .service(endpoints::get_document_entry)
+        .service(endpoints::get_ideas)
+        .service(endpoints::get_idea_entry)
     ).bind(("127.0.0.1", 8080))?.run().await?;
 
     Ok(())
