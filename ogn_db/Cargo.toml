@@ -1,10 +1,18 @@
+cargo-features = ["workspace-inheritance"]
+
 [package]
 name = "ogn-db"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["postgres", "serde_json"] }
+actix-web = { workspace = true }
+diesel = { workspace = true, features = ["postgres", "serde_json"] }
 diesel-derive-newtype = "2.0.0-rc.0"
-dotenv = "0.15.0"
-serde_json = "1.0.82"
+dotenv = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }
+serde_derive = { workspace = true }
+log = { workspace = true }
+
+

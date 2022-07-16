@@ -1,7 +1,7 @@
 use diesel::{Insertable, Queryable, Table};
 use diesel::deserialize::FromStaticSqlRow;
-use diesel::query_builder::InsertStatement;
 use diesel_derive_newtype::DieselNewType;
+use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::schema::documents;
@@ -13,7 +13,8 @@ pub struct DocumentId(pub i32);
 #[derive(Clone, Copy, Debug, DieselNewType)]
 pub struct IdeaId(pub i32);
 
-#[derive(Queryable, Insertable)]
+
+#[derive(Clone, Debug, Queryable, Insertable, Serialize, Deserialize)]
 #[diesel(table_name = documents)]
 pub struct Document {
     pub id: DocumentId,
@@ -21,13 +22,13 @@ pub struct Document {
     pub document_details: Option<Value>,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct DocumentPage {
     pub document_id: DocumentId,
     pub page_number: Option<i32>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Idea {
     pub id: IdeaId,
     pub doc_page: DocumentPage,

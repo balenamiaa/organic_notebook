@@ -1,12 +1,10 @@
 use std::path::Path;
 
-use actix_web::{App, get, HttpServer, middleware, post, Responder, web};
+use actix_web::{App, HttpServer, middleware, Responder, web};
 use actix_web::web::Data;
 use diesel::{PgConnection, r2d2};
 use diesel::r2d2::ConnectionManager;
 use dotenv_codegen::dotenv;
-
-use crate::endpoints::upload_document;
 
 mod endpoints;
 
@@ -29,10 +27,7 @@ async fn main() -> anyhow::Result<()> {
     let manager = ConnectionManager::<PgConnection>::new(dotenv!("DATABASE_URL"));
     let pool: DbPool = r2d2::Pool::builder().build(manager)?;
 
-    HttpServer::new(move || App::new()
-        .app_data(Data::new(pool.clone()))
-        .wrap(middleware::Logger::default())
-        .service(upload_document)
+    HttpServer::new(move || App::new().wrap(middleware::Compress::default()).wrap(middleware::Logger::default()).app_data(Data::new(pool.clone())).service(endpoints::upload_document).service(endpoints::get_documents).service(endpoints::get_document_entry).service(endpoints::get_ideas).service(endpoints::get_idea_entry)
     ).bind(("127.0.0.1", 8080))?.run().await?;
 
     Ok(())
