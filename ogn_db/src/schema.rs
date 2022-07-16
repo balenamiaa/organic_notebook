@@ -5,6 +5,7 @@ diesel::table! {
         id -> Int4,
         title -> Text,
         document_details -> Nullable<Json>,
+        filetype -> Varchar,
     }
 }
 

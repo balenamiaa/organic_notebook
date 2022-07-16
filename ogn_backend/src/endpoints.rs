@@ -50,7 +50,7 @@ pub async fn upload_document(mut files: Multipart, pool: Data<DbPool>) -> actix_
         let mut file = File::create(Path::new(DOCUMENT_ROOTDIR).join(format!("{}.{ext}", id.0)))?;
         file.write_all(&bytes)?;
 
-        let _created_document = ogn_db::create_document(conn.deref_mut(), id, &title, None);
+        let _created_document = ogn_db::create_document(conn.deref_mut(), id, &title, &ext, None);
     }
 
     Ok("")

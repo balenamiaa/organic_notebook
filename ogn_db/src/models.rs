@@ -20,6 +20,7 @@ pub struct Document {
     pub id: DocumentId,
     pub title: String,
     pub document_details: Option<Value>,
+    pub filetype: String,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

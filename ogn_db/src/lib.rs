@@ -49,6 +49,7 @@ pub fn create_document(
     conn: &mut PgConnection,
     id: DocumentId,
     title: &str,
+    filetype: &str,
     document_details: Option<Value>,
 ) -> Result<Document> {
     use crate::diesel::RunQueryDsl;
@@ -57,6 +58,7 @@ pub fn create_document(
     let new_document = Document {
         id,
         title: title.to_string(),
+        filetype: filetype.to_string(),
         document_details,
     };
     diesel::insert_into(documents::table).values(&new_document).get_result(conn).map_err(|e| str_err!("Error saving new document {}", e))
