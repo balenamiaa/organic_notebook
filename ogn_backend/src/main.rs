@@ -14,7 +14,6 @@ pub const DOCUMENT_ROOTDIR: &'static str = dotenv!("DATABASE_DOCUMENT_ROOTDIR");
 
 pub type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
-
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
@@ -41,7 +40,10 @@ async fn main() -> anyhow::Result<()> {
 
         auto_service!(app; "endpoints");
         app
-    }).bind(("127.0.0.1", 8080))?.run().await?;
+    })
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await?;
 
     Ok(())
 }

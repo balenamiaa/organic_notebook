@@ -1,7 +1,10 @@
 common_endpoint_imports!();
 
 #[get("/api/documents")]
-pub async fn get_documents(query_params: web::Query<(i64, i64)>, pool: web::Data<DbPool>) -> actix_web::Result<impl Responder> {
+pub async fn get_documents(
+    query_params: web::Query<(i64, i64)>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
     let (page_number, page_size) = query_params.into_inner();
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;

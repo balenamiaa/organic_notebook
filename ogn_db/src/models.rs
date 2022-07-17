@@ -13,7 +13,6 @@ pub struct DocumentId(pub i32);
 #[derive(Clone, Copy, Debug, DieselNewType)]
 pub struct IdeaId(pub i32);
 
-
 #[derive(Clone, Debug, Queryable, Insertable, Serialize, Deserialize)]
 #[diesel(table_name = documents)]
 pub struct Document {
@@ -37,8 +36,11 @@ pub struct Idea {
     pub idea_details: Option<Value>,
 }
 
-impl<DB: diesel::backend::Backend, ST0, ST1, ST2, ST3, ST4> Queryable<(ST0, ST1, ST2, ST3, ST4), DB> for Idea where
-    (i32, i32, Option<i32>, String, Option<Value>): FromStaticSqlRow<(ST0, ST1, ST2, ST3, ST4), DB> {
+impl<DB: diesel::backend::Backend, ST0, ST1, ST2, ST3, ST4> Queryable<(ST0, ST1, ST2, ST3, ST4), DB>
+for Idea
+    where
+        (i32, i32, Option<i32>, String, Option<Value>): FromStaticSqlRow<(ST0, ST1, ST2, ST3, ST4), DB>,
+{
     type Row = (i32, i32, Option<i32>, String, Option<Value>);
 
     fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
@@ -69,9 +71,12 @@ impl Insertable<ideas::table> for Idea {
         (
             Some(ideas::id.eq(self.id.0)),
             Some(ideas::document_id.eq(self.doc_page.document_id.0)),
-            self.doc_page.page_number.map(|x| ideas::document_page.eq(x)),
+            self.doc_page
+                .page_number
+                .map(|x| ideas::document_page.eq(x)),
             Some(ideas::idea_text.eq(self.idea_text)),
             self.idea_details.map(|x| ideas::idea_details.eq(x)),
-        ).values()
+        )
+            .values()
     }
 }

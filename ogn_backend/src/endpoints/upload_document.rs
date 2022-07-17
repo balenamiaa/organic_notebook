@@ -5,7 +5,10 @@ use std::path::Path;
 common_endpoint_imports!();
 
 #[post("/api/upload_document")]
-pub async fn upload_document(mut files: Multipart, pool: web::Data<DbPool>) -> actix_web::Result<impl Responder> {
+pub async fn upload_document(
+    mut files: Multipart,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
     while let Some(Ok(mut item)) = files.next().await {
         let _mime = item.content_type();
         let mut bytes = vec![];
@@ -15,7 +18,10 @@ pub async fn upload_document(mut files: Multipart, pool: web::Data<DbPool>) -> a
         let id = DocumentId(crc32fast::hash(&bytes) as i32);
 
         let (title, ext) = {
-            let filename = item.content_disposition().get_filename().ok_or(ErrorBadRequest("no filename"))?;
+            let filename = item
+                .content_disposition()
+                .get_filename()
+                .ok_or(ErrorBadRequest("no filename"))?;
             let mut splits = filename.split('.').peekable();
 
             let mut title = String::new();
@@ -31,12 +37,10 @@ pub async fn upload_document(mut files: Multipart, pool: web::Data<DbPool>) -> a
             (title, ext.ok_or(ErrorBadRequest("no extension"))?)
         };
 
-
         let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
         if ogn_db::document_exists(conn.deref_mut(), id)? {
             return Err(ErrorBadRequest("bad request"));
         }
-
 
         let mut file = File::create(Path::new(DOCUMENT_ROOTDIR).join(format!("{}.{ext}", id.0)))?;
         file.write_all(&bytes)?;

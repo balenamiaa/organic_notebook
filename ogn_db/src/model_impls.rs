@@ -8,9 +8,9 @@ impl<'de> Deserialize<'de> for DocumentId {
             D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        let id = s.parse::<i32>().map_err(|_|
-            serde::de::Error::custom("couldn't parse document id from payload")
-        )?;
+        let id = s
+            .parse::<i32>()
+            .map_err(|_| serde::de::Error::custom("couldn't parse document id from payload"))?;
         Ok(DocumentId(id))
     }
 }
@@ -30,9 +30,9 @@ impl<'de> Deserialize<'de> for IdeaId {
             D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        let id = s.parse::<i32>().map_err(|_|
-            serde::de::Error::custom("couldn't parse idea id from payload")
-        )?;
+        let id = s
+            .parse::<i32>()
+            .map_err(|_| serde::de::Error::custom("couldn't parse idea id from payload"))?;
         Ok(IdeaId(id))
     }
 }
@@ -45,4 +45,3 @@ impl Serialize for IdeaId {
         serializer.serialize_str(&self.0.to_string())
     }
 }
-

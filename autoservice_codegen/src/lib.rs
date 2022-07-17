@@ -19,7 +19,9 @@ impl Parse for AutoServiceInput {
         Ok(Self {
             app_ident: input.parse()?,
             dir: {
-                input.parse::<Token![;]>().expect("couldn't parse semicolon");
+                input
+                    .parse::<Token![;]>()
+                    .expect("couldn't parse semicolon");
                 input.parse::<LitStr>()?.value()
             },
         })
@@ -31,9 +33,11 @@ pub fn auto_service(ast: TokenStream, call_dir: &str) -> Result<TokenStream, syn
     let app_ident = input.app_ident;
     let mut result = TokenStream::new();
 
-    let inputs_dir = Path::new(call_dir).join(&input.dir).canonicalize().map_err(|_| syn::Error::new(result.span(), "couldn't find inputs directory"))?;
-    for file in std::fs::read_dir(inputs_dir).expect("Invalid directory!")
-    {
+    let inputs_dir = Path::new(call_dir)
+        .join(&input.dir)
+        .canonicalize()
+        .map_err(|_| syn::Error::new(result.span(), "couldn't find inputs directory"))?;
+    for file in std::fs::read_dir(inputs_dir).expect("Invalid directory!") {
         if let Ok(file) = file {
             let file_name = file.file_name();
             let file_name = file_name.to_string_lossy();
