@@ -2,7 +2,9 @@
 
 members = [
     "ogn_db",
-    "ogn_backend"
+    "ogn_backend",
+    "autoservice_codegen",
+    "autoservice"
 ]
 
 [workspace.dependencies]
@@ -18,3 +20,5 @@ log = "0.4.17"
 anyhow = "1.0.58"
 
 ogn-db = { path = "./ogn_db" }
+autoservice = { path = "./autoservice" }
+
