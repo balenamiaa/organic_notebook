@@ -40,6 +40,7 @@ async fn main() -> anyhow::Result<()> {
         .service(endpoints::get_document_entry)
         .service(endpoints::get_ideas)
         .service(endpoints::get_idea_entry)
+        .service(endpoints::get_idea_refs)
     ).bind(("127.0.0.1", 8080))?.run().await?;
 
     Ok(())

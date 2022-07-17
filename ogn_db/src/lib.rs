@@ -41,7 +41,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 macro_rules! str_err {
     ($($arg:tt)*) => {
-        anyhow!($($arg)*).into()
+        Error::from(anyhow!($($arg)*))
     };
 }
 
@@ -92,6 +92,7 @@ pub fn create_idea(
         idea_text: idea_text.to_string(),
         idea_details,
     };
+
     diesel::insert_into(ideas::table).values(new_idea).get_result(conn).map_err(|e| str_err!("Error saving new idea {}", e))
 }
 
@@ -132,6 +133,29 @@ pub fn get_num_ideas(conn: &mut PgConnection) -> Result<i64> {
     use schema::ideas;
 
     ideas::table.select(diesel::dsl::count_star()).first(conn).map_err(|e| str_err!("Error loading ideas {}", e))
+}
+
+pub fn get_idea_refs(conn: &mut PgConnection, idea_id: IdeaId, page_index: i64, page_size: i64) -> Result<Vec<DocumentPage>> {
+    use diesel::prelude::*;
+    use schema::ideas;
+
+    type SelectType = (i32, Option<i32>);
+
+    let ideas: Vec<SelectType> = ideas::table.filter(ideas::id.eq(idea_id))
+        .select((ideas::document_id, ideas::document_page))
+        .limit(page_size).offset(page_index * page_size)
+        .load(conn).map_err(|e| str_err!("Error loading ideas {}", e))?;
+
+    Ok(ideas.iter().map(|x| DocumentPage { document_id: DocumentId(x.0), page_number: x.1 }).collect())
+}
+
+pub fn get_num_idea_refs(conn: &mut PgConnection, idea_id: IdeaId) -> Result<i64> {
+    use diesel::prelude::*;
+    use schema::ideas;
+
+    ideas::table.filter(ideas::id.eq(idea_id))
+        .select(diesel::dsl::count_star())
+        .first(conn).map_err(|e| str_err!("Error loading ideas {}", e))
 }
 
 
