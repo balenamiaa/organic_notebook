@@ -1,13 +1,18 @@
 macro_rules! common_endpoint_imports {
     () => {
+        #[allow(unused_imports)]
         use std::ops::DerefMut;
+        #[allow(unused_imports)]
         use actix_multipart::Multipart;
+        #[allow(unused_imports)]
         use actix_web::{get, post, Responder, web};
+        #[allow(unused_imports)]
         use actix_web::error::{ErrorInternalServerError, ErrorBadRequest};
+        #[allow(unused_imports)]
         use futures_util::StreamExt;
-
+        #[allow(unused_imports)]
         use ogn_db::models::*;
-
+        #[allow(unused_imports)]
         use crate::{DbPool, DOCUMENT_ROOTDIR};
     };
 }

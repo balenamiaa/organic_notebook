@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use actix_web::{App, HttpServer, middleware, Responder, web};
+use actix_web::{App, HttpServer, middleware};
 use actix_web::web::Data;
 use diesel::{PgConnection, r2d2};
 use diesel::r2d2::ConnectionManager;
