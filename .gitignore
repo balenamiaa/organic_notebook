@@ -11,4 +11,5 @@ node_modules
 !.env.example
 /.sveltekit/
 /documents/
+/vendor/
 package-lock.json

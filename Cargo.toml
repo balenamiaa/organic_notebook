@@ -1,10 +1,11 @@
 [workspace]
 
 members = [
-    "ogn_db",
-    "ogn_backend",
-    "autoservice_codegen",
-    "autoservice"
+    "ogn-db",
+    "ogn-backend",
+    "autoservice-codegen",
+    "autoservice",
+    "ogn-extractors"
 ]
 
 [workspace.dependencies]
@@ -19,6 +20,7 @@ serde_derive = "1.0.139"
 log = "0.4.17"
 anyhow = "1.0.58"
 
-ogn-db = { path = "./ogn_db" }
+
+ogn-db = { path = "ogn-db" }
 autoservice = { path = "./autoservice" }
 

@@ -1,9 +1,7 @@
-#[macro_use]
-extern crate diesel;
-
 use std::fmt::{Debug, Display, Formatter};
 
 use anyhow::anyhow;
+use diesel;
 use diesel::PgConnection;
 use serde_json::Value;
 
