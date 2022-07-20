@@ -8,6 +8,6 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-autoservice-codegen = { path = "../autoservice_codegen" }
+autoservice-codegen = { path = "../autoservice-codegen" }
 syn = "1.0.98"
 proc-macro2 = "1.0.40"

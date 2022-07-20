@@ -1,4 +1,4 @@
-use diesel::{Insertable, Queryable, Table};
+use diesel::{Insertable, Queryable};
 use diesel::deserialize::FromStaticSqlRow;
 use diesel_derive_newtype::DieselNewType;
 use serde_derive::{Deserialize, Serialize};
