@@ -1,12 +1,28 @@
 <script>
+import { baseUrl } from '$lib/utils/api.js';
+
 	import { getContext } from 'svelte'
-	import { uploadDocument } from '../api.js'
+	import { getDocuments, uploadDocument } from '../api.js'
 	import { documentsKey } from '../stores'
 
 	const { documents } = getContext(documentsKey)
 
-	function onSubmit(event) {
-		uploadDocument(event.target.elements['files'].files)
+	refreshDocuments()
+
+	async function onSubmit(event) {
+		try {
+			const files = event.target.elements['files'].files
+			const response = await uploadDocument(files)
+
+			if (response.status === 200) {
+				refreshDocuments()
+			}
+		} catch (err) {}
+	}
+	async function refreshDocuments() {
+		try {
+			$documents = await (await getDocuments()).json()
+		} catch (err) {}
 	}
 </script>
 
@@ -20,10 +36,13 @@
 		</div>
 	</form>
 	<h3>List</h3>
-	{#if $documents.list}
+	{#if $documents.documents}
 		<ol>
-			{#each $documents.list as doc}
-				<li>{doc}</li>
+			{#each $documents.documents as doc}
+				<li>
+					{doc.title}
+					<a target="_blank" href={`${baseUrl}/static/${doc.id}.${doc.filetype}`}>View</a>
+				</li>
 			{/each}
 		</ol>
 	{/if}

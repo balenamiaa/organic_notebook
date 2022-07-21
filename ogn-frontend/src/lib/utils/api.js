@@ -1,4 +1,9 @@
-export const apiUrl = 'http://localhost:8080/api'
+export const baseUrl = 'http://localhost:8080'
+export const apiUrl = `${baseUrl}/api`
+
+export function fetchFromBase(url, init) {
+	return fetch(`${baseUrl}${url}`, { ...init })
+}
 
 export function fetchApi(url, init) {
 	return fetch(`${apiUrl}${url}`, { ...init })

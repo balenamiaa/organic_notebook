@@ -4,6 +4,6 @@ export function getIdeas() {
 	return getRequest('/ideas')
 }
 
-export function getDocumentEntry(id) {
+export function getIdeaEntry(id) {
 	return getRequest(`/ideas/${id}`)
 }
