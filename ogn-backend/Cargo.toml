@@ -21,3 +21,6 @@ anyhow = { workspace = true }
 
 ogn-db = { workspace = true }
 autoservice = { workspace = true }
+
+serde = { workspace = true }
+serde_derive = { workspace = true }
