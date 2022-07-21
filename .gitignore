@@ -14,3 +14,10 @@ package
 package-lock.json
 .idea
 *.dll
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+*.vsix

@@ -1,9 +1,10 @@
 use std::path::Path;
 
-use actix_web::{App, HttpServer, middleware};
+use actix_cors::Cors;
 use actix_web::web::Data;
-use diesel::{PgConnection, r2d2};
+use actix_web::{middleware, App, HttpServer};
 use diesel::r2d2::ConnectionManager;
+use diesel::{r2d2, PgConnection};
 use dotenv_codegen::dotenv;
 
 use autoservice::auto_service;
@@ -29,7 +30,13 @@ async fn main() -> anyhow::Result<()> {
     let pool: DbPool = r2d2::Pool::builder().build(manager)?;
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allow_any_header()
+            .allow_any_method();
+
         let mut app = App::new()
+            .wrap(cors)
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
             .app_data(Data::new(pool.clone()))
@@ -41,9 +48,9 @@ async fn main() -> anyhow::Result<()> {
         auto_service!(app; "endpoints");
         app
     })
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await?;
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await?;
 
     Ok(())
 }
