@@ -21,4 +21,7 @@ diesel::table! {
 
 diesel::joinable!(ideas -> documents (document_id));
 
-diesel::allow_tables_to_appear_in_same_query!(documents, ideas,);
+diesel::allow_tables_to_appear_in_same_query!(
+    documents,
+    ideas,
+);
