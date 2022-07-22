@@ -15,7 +15,10 @@ trait ErrorWrapper {
     }
 }
 
-impl<T> ErrorWrapper for T where T: std::error::Error + Send + Sync + 'static {
+impl<T> ErrorWrapper for T
+    where
+        T: std::error::Error + Send + Sync + 'static,
+{
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         StdError::source(self)
     }
@@ -28,7 +31,7 @@ impl<T: ErrorWrapper + Sync + Send + 'static> From<T> for Error {
                 anyhow!("{}", x)
             } else {
                 anyhow!("text extraction error")
-            }
+            },
         }
     }
 }
@@ -41,12 +44,14 @@ impl From<Error> for anyhow::Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-
 pub struct PDFDocument {
     path: PathBuf,
 }
 
-pub trait TextExtractor where Self: Sized {
+pub trait TextExtractor
+    where
+        Self: Sized,
+{
     fn extract(&self) -> Result<Vec<String>>;
     fn open(filepath: impl AsRef<Path>) -> Result<Self>;
 }
@@ -59,7 +64,8 @@ impl TextExtractor for PDFDocument {
         let mut result = vec![];
         loop {
             let mut command = Command::new(&pdf2text_path);
-            command.arg("-layout")
+            command
+                .arg("-layout")
                 .arg("-f")
                 .arg(page_num.to_string())
                 .arg("-l")
@@ -72,7 +78,9 @@ impl TextExtractor for PDFDocument {
             let status = output.status.code().unwrap_or(0);
 
             if status != 0 {
-                return Err(Error { inner: anyhow!("pdf2text failed with status {}", status) });
+                return Err(Error {
+                    inner: anyhow!("pdf2text failed with status {}", status),
+                });
             } else {
                 if output.stdout.is_empty() {
                     break;
@@ -90,6 +98,8 @@ impl TextExtractor for PDFDocument {
     }
 
     fn open(filepath: impl AsRef<Path>) -> Result<Self> {
-        Ok(PDFDocument { path: filepath.as_ref().to_path_buf() })
+        Ok(PDFDocument {
+            path: filepath.as_ref().to_path_buf(),
+        })
     }
 }

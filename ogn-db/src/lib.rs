@@ -7,7 +7,7 @@ use serde_json::Value;
 
 use models::DocumentId;
 
-use crate::models::{Document, DocumentPage, Idea, IdeaId};
+use crate::models::{Document, DocumentPage, Idea, IdeaId, NewIdea};
 
 pub mod model_impls;
 pub mod models;
@@ -81,7 +81,6 @@ pub fn document_exists(conn: &mut PgConnection, document_id: DocumentId) -> Resu
 
 pub fn create_idea(
     conn: &mut PgConnection,
-    id: IdeaId,
     doc_page: DocumentPage,
     idea_text: &str,
     idea_details: Option<Value>,
@@ -89,8 +88,7 @@ pub fn create_idea(
     use crate::diesel::RunQueryDsl;
     use schema::ideas;
 
-    let new_idea = Idea {
-        id,
+    let new_idea = NewIdea {
         doc_page,
         idea_text: idea_text.to_string(),
         idea_details,

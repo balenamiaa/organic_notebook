@@ -36,6 +36,13 @@ pub struct Idea {
     pub idea_details: Option<Value>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct NewIdea {
+    pub doc_page: DocumentPage,
+    pub idea_text: String,
+    pub idea_details: Option<Value>,
+}
+
 impl<DB: diesel::backend::Backend, ST0, ST1, ST2, ST3, ST4> Queryable<(ST0, ST1, ST2, ST3, ST4), DB>
 for Idea
     where
@@ -56,9 +63,8 @@ for Idea
     }
 }
 
-impl Insertable<ideas::table> for Idea {
+impl Insertable<ideas::table> for NewIdea {
     type Values = <(
-        Option<diesel::dsl::Eq<ideas::id, i32>>,
         Option<diesel::dsl::Eq<ideas::document_id, i32>>,
         Option<diesel::dsl::Eq<ideas::document_page, i32>>,
         Option<diesel::dsl::Eq<ideas::idea_text, String>>,
@@ -69,7 +75,6 @@ impl Insertable<ideas::table> for Idea {
         use diesel::prelude::*;
 
         (
-            Some(ideas::id.eq(self.id.0)),
             Some(ideas::document_id.eq(self.doc_page.document_id.0)),
             self.doc_page
                 .page_number
