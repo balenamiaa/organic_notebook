@@ -3,11 +3,11 @@ use std::path::Path;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, TokenStreamExt};
 use syn;
-use syn::{Ident, LitStr};
 use syn::parse::{Parse, ParseStream};
 use syn::parse2;
 use syn::spanned::Spanned;
 use syn::Token;
+use syn::{Ident, LitStr};
 
 struct AutoServiceInput {
     app_ident: Ident,

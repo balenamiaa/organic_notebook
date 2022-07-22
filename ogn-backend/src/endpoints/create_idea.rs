@@ -7,12 +7,7 @@ pub async fn create_idea(
 ) -> actix_web::Result<impl Responder> {
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
     let json_body = json_body.into_inner();
-    let idea = ogn_db::create_idea(
-        conn.deref_mut(),
-        json_body.doc_page,
-        &json_body.idea_text,
-        json_body.idea_details,
-    )?;
+    let idea = ogn_db::create_idea(conn.deref_mut(), &json_body.label)?;
 
     Ok(web::Json(idea))
 }
