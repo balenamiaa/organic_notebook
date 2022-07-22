@@ -6,7 +6,6 @@
 	import * as pdfjs from 'pdfjs-dist'
 
 	export let pageNumber
-
 	const pdf = getContext(PdfKey)
 	let page
 	let viewport
@@ -16,19 +15,21 @@
 	let textRenderTask
 
 	$: if ($pdf) {
-		refreshPage($pdf)
+		refreshPage()
 	}
 	$: if (page && viewport) {
 		tick().then(() => {
-			renderPage(page, viewport)
-			renderText(page, viewport)
+			renderPage(page, viewport).then(() => renderText(page, viewport))
 		})
 	}
 
-	async function refreshPage(pdf) {
-		const scale = 1.5
+	async function refreshPage() {
 		try {
-			page = await pdf.getPage(pageNumber)
+			page = await $pdf.getPage(pageNumber)
+			// To make page fit the screen and have consistent width
+			const scale =
+				(document.documentElement.clientWidth - pdf.padding * 2) / page.getViewport(1.0).viewBox[2]
+
 			viewport = page.getViewport({ scale: scale })
 		} catch (err) {}
 	}
@@ -37,11 +38,12 @@
 		const context = canvas.getContext('2d')
 
 		const outputScale = window.devicePixelRatio || 1
-
-		canvas.width = Math.floor(viewport.width * outputScale)
-		canvas.height = Math.floor(viewport.height * outputScale)
-		canvas.style.width = Math.floor(viewport.width) + 'px'
-		canvas.style.height = Math.floor(viewport.height) + 'px'
+		const width = viewport.width
+		const height = viewport.height
+		canvas.width = Math.floor(width * outputScale)
+		canvas.height = Math.floor(height * outputScale)
+		canvas.style.width = Math.floor(width) + 'px'
+		canvas.style.height = Math.floor(height) + 'px'
 
 		var transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null
 
@@ -67,27 +69,11 @@
 <div id="root">
 	<canvas bind:this={canvas} />
 
-	<div bind:this={textContainer} id="text-container" />
+	<div bind:this={textContainer} class="textLayer" />
 </div>
 
 <style>
 	#root {
 		position: relative;
-	}
-
-	#text-container {
-		position: absolute;
-		overflow: clip;
-		inset: 0;
-		opacity: 0.2;
-		line-height: 1;
-	}
-
-	div > :global(span) {
-		color: transparent;
-		position: absolute;
-		white-space: pre;
-		cursor: text;
-		transform-origin: 0% 0%;
 	}
 </style>

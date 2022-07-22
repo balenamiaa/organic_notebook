@@ -1,5 +1,6 @@
 <script context="module">
 	import workerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url'
+	import pdfViewStyle from 'pdfjs-dist/web/pdf_viewer.css'
 	import { readable, writable } from 'svelte/store'
 	import * as pdfjs from 'pdfjs-dist'
 	pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
@@ -12,12 +13,13 @@
 
 <script>
 	import { createEventDispatcher, setContext, onDestroy } from 'svelte'
-	import { PdfKey } from '../stores'
+	import { createPdfDocument, PdfKey } from '../stores'
 
 	export let srcUrl
 
 	let loadingTask = null
-	const pdfDocument = writable(null)
+	const padding = 24
+	const pdfDocument = createPdfDocument({ padding })
 	const dispatch = createEventDispatcher()
 
 	setContext(PdfKey, pdfDocument)
@@ -42,4 +44,14 @@
 	})
 </script>
 
-<slot />
+<div id="root" style="padding: {padding}px;">
+	<slot />
+</div>
+
+<style>
+	#root {
+		background-color: rgba(237, 237, 240, 1);
+		width: max-content;
+		overflow: auto;
+	}
+</style>
