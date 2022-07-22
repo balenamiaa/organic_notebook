@@ -1,9 +1,9 @@
-import { getRequest } from '$lib/utils/api.js'
+import {getRequest} from '$lib/utils/api.js'
 
 export function getIdeas() {
-	return getRequest('/ideas')
+    return getRequest('/ideas')
 }
 
 export function getDocumentEntry(id) {
-	return getRequest(`/ideas/${id}`)
+    return getRequest(`/ideas/${id}`)
 }

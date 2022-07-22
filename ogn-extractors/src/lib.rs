@@ -16,8 +16,8 @@ trait ErrorWrapper {
 }
 
 impl<T> ErrorWrapper for T
-    where
-        T: std::error::Error + Send + Sync + 'static,
+where
+    T: std::error::Error + Send + Sync + 'static,
 {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         StdError::source(self)
@@ -49,8 +49,8 @@ pub struct PDFDocument {
 }
 
 pub trait TextExtractor
-    where
-        Self: Sized,
+where
+    Self: Sized,
 {
     fn extract(&self) -> Result<Vec<String>>;
     fn open(filepath: impl AsRef<Path>) -> Result<Self>;

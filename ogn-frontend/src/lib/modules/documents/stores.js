@@ -1,13 +1,13 @@
-import { writable } from 'svelte/store'
+import {writable} from 'svelte/store'
 
 export const documentsKey = Symbol()
 
 export function createDocuments() {
-	const { subscribe, set, update } = writable({})
+    const {subscribe, set, update} = writable({})
 
-	return {
-		subscribe,
-		set,
-		update,
-	}
+    return {
+        subscribe,
+        set,
+        update,
+    }
 }
