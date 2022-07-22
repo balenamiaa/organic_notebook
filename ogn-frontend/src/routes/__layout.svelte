@@ -1,10 +1,10 @@
 <script>
-	import { createDocuments, documentsKey } from '$lib/modules/documents/stores'
-	import { setContext } from 'svelte'
+    import {createDocuments, documentsKey} from '$lib/modules/documents/stores'
+    import {setContext} from 'svelte'
 
-	setContext(documentsKey, {
-		documents: createDocuments(),
-	})
+    setContext(documentsKey, {
+        documents: createDocuments(),
+    })
 </script>
 
-<slot />
+<slot/>
