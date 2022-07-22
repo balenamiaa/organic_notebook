@@ -7,7 +7,9 @@ use serde_json::Value;
 
 use models::DocumentId;
 
-use crate::models::{Document, DocumentPage, Idea, IdeaId, NewIdea};
+use crate::models::{
+    Document, DocumentPage, Idea, IdeaId, IdeaRef, IdeaRefId, NewIdea, NewIdeaRef,
+};
 
 pub mod model_impls;
 pub mod models;
@@ -42,6 +44,127 @@ macro_rules! str_err {
     };
 }
 
+//-- IDEAS TABLE
+
+pub fn create_idea(conn: &mut PgConnection, label: &str) -> Result<Idea> {
+    use crate::diesel::RunQueryDsl;
+    use schema::ideas;
+
+    let new_idea = NewIdea {
+        label: label.to_string(),
+    };
+
+    diesel::insert_into(ideas::table)
+        .values(new_idea)
+        .get_result(conn)
+        .map_err(|e| str_err!("Error saving new idea {}", e))
+}
+
+pub fn get_idea(conn: &mut PgConnection, id: IdeaId) -> Result<Option<Idea>> {
+    use diesel::prelude::*;
+    use schema::ideas;
+
+    ideas::table
+        .filter(ideas::id.eq(id))
+        .get_result(conn)
+        .optional()
+        .map_err(|e| str_err!("Error loading idea {}", e))
+}
+
+pub fn get_ideas(conn: &mut PgConnection, page_index: i64, page_size: i64) -> Result<Vec<Idea>> {
+    use diesel::prelude::*;
+    use schema::ideas;
+
+    ideas::table
+        .limit(page_size)
+        .offset(page_index * page_size)
+        .load::<Idea>(conn)
+        .map_err(|e| str_err!("Error loading ideas {}", e))
+}
+
+pub fn idea_exists(conn: &mut PgConnection, id: IdeaId) -> Result<bool> {
+    Ok(get_idea(conn, id)?.is_some())
+}
+
+pub fn get_num_ideas(conn: &mut PgConnection) -> Result<i64> {
+    use diesel::prelude::*;
+    use schema::ideas;
+
+    ideas::table
+        .select(diesel::dsl::count_star())
+        .first(conn)
+        .map_err(|e| str_err!("Error loading ideas {}", e))
+}
+
+//-- IDEAS TABLE
+
+//-- IDEA_REFS TABLE
+
+pub fn create_idea_ref(
+    conn: &mut PgConnection,
+    doc_page: DocumentPage,
+    idea_ref: IdeaId,
+    idea_details: Option<Value>,
+) -> Result<IdeaRef> {
+    use crate::diesel::RunQueryDsl;
+    use schema::idea_refs;
+
+    let new_idea = NewIdeaRef {
+        doc_page,
+        idea_ref,
+        idea_details,
+    };
+
+    diesel::insert_into(idea_refs::table)
+        .values(new_idea)
+        .get_result(conn)
+        .map_err(|e| str_err!("Error saving new idea ref {}", e))
+}
+
+pub fn get_idea_ref(conn: &mut PgConnection, id: IdeaRefId) -> Result<Option<IdeaRef>> {
+    use diesel::prelude::*;
+    use schema::idea_refs;
+
+    idea_refs::table
+        .filter(idea_refs::id.eq(id))
+        .get_result(conn)
+        .optional()
+        .map_err(|e| str_err!("Error loading idea ref {}", e))
+}
+
+pub fn get_idea_refs(
+    conn: &mut PgConnection,
+    page_index: i64,
+    page_size: i64,
+) -> Result<Vec<IdeaRef>> {
+    use diesel::prelude::*;
+    use schema::idea_refs;
+
+    idea_refs::table
+        .limit(page_size)
+        .offset(page_index * page_size)
+        .load::<IdeaRef>(conn)
+        .map_err(|e| str_err!("Error loading idea refs {}", e))
+}
+
+pub fn idea_ref_exists(conn: &mut PgConnection, id: IdeaRefId) -> Result<bool> {
+    Ok(get_idea_ref(conn, id)?.is_some())
+}
+
+pub fn get_num_idea_refs(conn: &mut PgConnection) -> Result<i64> {
+    use diesel::prelude::*;
+    use schema::idea_refs;
+
+    idea_refs::table
+        .select(diesel::dsl::count_star())
+        .first(conn)
+        .map_err(|e| str_err!("Error loading idea refs {}", e))
+}
+
+//-- IDEA_REFS TABLE
+
+//-- DOCUMENTS TABLE
+
 pub fn create_document(
     conn: &mut PgConnection,
     id: DocumentId,
@@ -75,46 +198,6 @@ pub fn get_document(conn: &mut PgConnection, id: DocumentId) -> Result<Option<Do
         .map_err(|e| str_err!("Error loading document {}", e))
 }
 
-pub fn document_exists(conn: &mut PgConnection, document_id: DocumentId) -> Result<bool> {
-    Ok(get_document(conn, document_id)?.is_some())
-}
-
-pub fn create_idea(
-    conn: &mut PgConnection,
-    doc_page: DocumentPage,
-    idea_text: &str,
-    idea_details: Option<Value>,
-) -> Result<Idea> {
-    use crate::diesel::RunQueryDsl;
-    use schema::ideas;
-
-    let new_idea = NewIdea {
-        doc_page,
-        idea_text: idea_text.to_string(),
-        idea_details,
-    };
-
-    diesel::insert_into(ideas::table)
-        .values(new_idea)
-        .get_result(conn)
-        .map_err(|e| str_err!("Error saving new idea {}", e))
-}
-
-pub fn get_idea(conn: &mut PgConnection, id: IdeaId) -> Result<Option<Idea>> {
-    use diesel::prelude::*;
-    use schema::ideas;
-
-    ideas::table
-        .filter(ideas::id.eq(id))
-        .get_result(conn)
-        .optional()
-        .map_err(|e| str_err!("Error loading idea {}", e))
-}
-
-pub fn idea_exists(conn: &mut PgConnection, idea_id: IdeaId) -> Result<bool> {
-    Ok(get_idea(conn, idea_id)?.is_some())
-}
-
 pub fn get_documents(
     conn: &mut PgConnection,
     page_index: i64,
@@ -130,6 +213,10 @@ pub fn get_documents(
         .map_err(|e| str_err!("Error loading documents {}", e))
 }
 
+pub fn document_exists(conn: &mut PgConnection, document_id: DocumentId) -> Result<bool> {
+    Ok(get_document(conn, document_id)?.is_some())
+}
+
 pub fn get_num_documents(conn: &mut PgConnection) -> Result<i64> {
     use diesel::prelude::*;
     use schema::documents;
@@ -140,62 +227,33 @@ pub fn get_num_documents(conn: &mut PgConnection) -> Result<i64> {
         .map_err(|e| str_err!("Error loading documents {}", e))
 }
 
-pub fn get_ideas(conn: &mut PgConnection, page_index: i64, page_size: i64) -> Result<Vec<Idea>> {
-    use diesel::prelude::*;
-    use schema::ideas;
+//-- DOCUMENTS TABLE
 
-    ideas::table
-        .limit(page_size)
-        .offset(page_index * page_size)
-        .load::<Idea>(conn)
-        .map_err(|e| str_err!("Error loading ideas {}", e))
-}
-
-pub fn get_num_ideas(conn: &mut PgConnection) -> Result<i64> {
-    use diesel::prelude::*;
-    use schema::ideas;
-
-    ideas::table
-        .select(diesel::dsl::count_star())
-        .first(conn)
-        .map_err(|e| str_err!("Error loading ideas {}", e))
-}
-
-pub fn get_idea_refs(
+pub fn get_idea_refs_for_idea(
     conn: &mut PgConnection,
-    idea_id: IdeaId,
+    id: IdeaId,
     page_index: i64,
     page_size: i64,
-) -> Result<Vec<DocumentPage>> {
+) -> Result<Vec<IdeaRef>> {
     use diesel::prelude::*;
-    use schema::ideas;
+    use schema::idea_refs;
 
-    type SelectType = (i32, Option<i32>);
-
-    let ideas: Vec<SelectType> = ideas::table
-        .filter(ideas::id.eq(idea_id))
-        .select((ideas::document_id, ideas::document_page))
+    idea_refs::table
+        .filter(idea_refs::id.eq(id))
+        .select(idea_refs::all_columns)
         .limit(page_size)
         .offset(page_index * page_size)
         .load(conn)
-        .map_err(|e| str_err!("Error loading ideas {}", e))?;
-
-    Ok(ideas
-        .iter()
-        .map(|x| DocumentPage {
-            document_id: DocumentId(x.0),
-            page_number: x.1,
-        })
-        .collect())
+        .map_err(|e| str_err!("Error loading idea refs {}", e))
 }
 
-pub fn get_num_idea_refs(conn: &mut PgConnection, idea_id: IdeaId) -> Result<i64> {
+pub fn get_num_idea_refs_for_idea(conn: &mut PgConnection, id: IdeaId) -> Result<i64> {
     use diesel::prelude::*;
-    use schema::ideas;
+    use schema::idea_refs;
 
-    ideas::table
-        .filter(ideas::id.eq(idea_id))
+    idea_refs::table
+        .filter(idea_refs::id.eq(id))
         .select(diesel::dsl::count_star())
         .first(conn)
-        .map_err(|e| str_err!("Error loading ideas {}", e))
+        .map_err(|e| str_err!("Error loading idea refs {}", e))
 }
