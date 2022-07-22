@@ -1,12 +1,11 @@
 <script>
-import { baseUrl } from '$lib/utils/api.js';
-
 	import { getContext } from 'svelte'
 	import { getDocuments, uploadDocument } from '../api.js'
 	import { documentsKey } from '../stores'
+	import DocumentView from './DocumentView.svelte'
 
 	const { documents } = getContext(documentsKey)
-
+	let currentDoc
 	refreshDocuments()
 
 	async function onSubmit(event) {
@@ -40,10 +39,21 @@ import { baseUrl } from '$lib/utils/api.js';
 		<ol>
 			{#each $documents.documents as doc}
 				<li>
-					{doc.title}
-					<a target="_blank" href={`${baseUrl}/static/${doc.id}.${doc.filetype}`}>View</a>
+					<span class:selected-document={doc === currentDoc}>
+						{doc.title}
+					</span>
+					<button on:click={() => (currentDoc = doc)}>View</button>
 				</li>
 			{/each}
 		</ol>
 	{/if}
+	{#if currentDoc}
+		<DocumentView document={currentDoc} />
+	{/if}
 </div>
+
+<style>
+	.selected-document {
+		background-color: yellow;
+	}
+</style>

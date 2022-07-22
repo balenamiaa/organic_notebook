@@ -9,8 +9,8 @@
 </script>
 
 <script>
-	import Documents from '$lib/modules/documents/views/documents.svelte'
-	import Ideas from '$lib/modules/ideas/views/ideas.svelte'
+	import Documents from '$lib/modules/documents/views/Documents.svelte'
+	import Ideas from '$lib/modules/ideas/views/Idea.svelte'
 </script>
 
 <h1>Organic Notebook</h1>
