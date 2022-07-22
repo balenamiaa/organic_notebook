@@ -17,6 +17,7 @@ macro_rules! common_endpoint_imports {
     };
 }
 
+pub mod create_idea;
 pub mod get_document_entry;
 pub mod get_documents;
 pub mod get_idea_entry;
