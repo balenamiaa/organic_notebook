@@ -1,6 +1,10 @@
 export const baseUrl = 'http://localhost:8080'
 export const apiUrl = `${baseUrl}/api`
 
+export const contentType = {
+	json: { 'content-type': 'application/json' }
+}
+
 export function fetchFromBase(url, init) {
 	return fetch(`${baseUrl}${url}`, { ...init })
 }

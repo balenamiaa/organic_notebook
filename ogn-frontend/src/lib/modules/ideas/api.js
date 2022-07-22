@@ -1,9 +1,16 @@
-import { getRequest } from '$lib/utils/api.js'
+import { contentType, getRequest, postRequest } from '$lib/utils/api.js'
 
-export function getIdeas() {
-	return getRequest('/ideas')
+export function getIdeas(page = 0, pageSize = 10) {
+	return getRequest(`/ideas?page_num=${page}&page_size=${pageSize}`)
 }
 
 export function getIdeaEntry(id) {
 	return getRequest(`/ideas/${id}`)
+}
+
+export function createIdea(data) {
+	return postRequest(`/create_idea`, {
+		body: JSON.stringify(data),
+		headers: { ...contentType.json },
+	})
 }
