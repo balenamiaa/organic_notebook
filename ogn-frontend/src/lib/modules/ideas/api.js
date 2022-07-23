@@ -14,3 +14,10 @@ export function createIdea(data) {
 		headers: { ...contentType.json },
 	})
 }
+
+export function createIdeaReference(data) {
+	return postRequest(`/create_idea_ref`, {
+		body: JSON.stringify(data),
+		headers: { ...contentType.json },
+	})
+}

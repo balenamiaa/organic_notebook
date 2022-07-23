@@ -5,7 +5,7 @@
 
 	const { ideas } = getContext(ideasKey)
 
-	refreshIdeas()
+	ideas.refresh()
 
 	async function onSubmit(event) {
 		try {
@@ -13,15 +13,11 @@
 			const response = await createIdea({ label: ideaLabel })
 
 			if (response.status === 200) {
-				refreshIdeas()
+				ideas.refresh()
 			}
 		} catch (err) {}
 	}
-	async function refreshIdeas() {
-		try {
-			$ideas = await (await getIdeas()).json()
-		} catch (err) {}
-	}
+	
 </script>
 
 <div>

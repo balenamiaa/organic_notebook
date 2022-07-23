@@ -1,7 +1,7 @@
 <script context="module">
 	import workerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url'
 	import pdfViewStyle from 'pdfjs-dist/web/pdf_viewer.css'
-	import { readable, writable } from 'svelte/store'
+	import { readable } from 'svelte/store'
 	import * as pdfjs from 'pdfjs-dist'
 	pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
 	const pdfWorker = readable(null, (set) => {
@@ -14,6 +14,7 @@
 <script>
 	import { createEventDispatcher, setContext, onDestroy } from 'svelte'
 	import { createPdfDocument, PdfKey } from '../stores'
+	import { documentViewerEvent } from '$lib/utils/events/documentViewerEvent'
 
 	export let srcUrl
 
@@ -44,7 +45,13 @@
 	})
 </script>
 
-<div id="root" style="padding: {padding}px;">
+<div
+	id="root"
+	style="padding: {padding}px;"
+	use:documentViewerEvent
+	on:selectionEnd
+	on:selectionChange
+>
 	<slot />
 </div>
 

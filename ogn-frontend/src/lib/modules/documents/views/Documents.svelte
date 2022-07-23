@@ -48,7 +48,7 @@
 		</ol>
 	{/if}
 	{#if currentDoc}
-		<DocumentView document={currentDoc} />
+		<DocumentView doc={currentDoc} />
 	{/if}
 </div>
 
