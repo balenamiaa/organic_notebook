@@ -10,12 +10,12 @@ pub fn create_idea_ref(
     conn: &mut PgConnection,
     doc_page: DocumentPage,
     idea_ref: IdeaId,
-    idea_details: Option<Value>,
+    idea_ref_text: String,
 ) -> Result<IdeaRef> {
     let new_idea = NewIdeaRef {
         doc_page,
         idea_ref,
-        idea_details,
+        idea_ref_text,
     };
 
     diesel::insert_into(schema::idea_refs::table)

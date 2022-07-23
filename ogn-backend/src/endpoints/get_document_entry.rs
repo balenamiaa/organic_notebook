@@ -1,4 +1,5 @@
 use ogn_db::documents;
+
 common_endpoint_imports!();
 
 #[get("/api/documents/{id}")]

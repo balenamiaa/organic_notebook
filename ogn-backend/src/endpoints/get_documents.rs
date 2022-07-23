@@ -1,5 +1,6 @@
-use ogn_db::documents;
 use serde_derive::{Deserialize, Serialize};
+
+use ogn_db::documents;
 
 common_endpoint_imports!();
 

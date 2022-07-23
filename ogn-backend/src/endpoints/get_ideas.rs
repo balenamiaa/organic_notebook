@@ -1,5 +1,6 @@
-use ogn_db::ideas;
 use serde_derive::{Deserialize, Serialize};
+
+use ogn_db::ideas;
 
 common_endpoint_imports!();
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]

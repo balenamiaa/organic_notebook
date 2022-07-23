@@ -13,7 +13,7 @@ pub async fn create_idea_ref(
         conn.deref_mut(),
         json_body.doc_page,
         json_body.idea_ref,
-        json_body.idea_details,
+        json_body.idea_ref_text,
     )?;
 
     Ok(web::Json(idea_ref))

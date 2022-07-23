@@ -1,6 +1,6 @@
 use std::error::Error as StdError;
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{Command, Stdio};
 
 use anyhow::anyhow;
 

@@ -11,13 +11,11 @@ pub fn create_document(
     id: DocumentId,
     title: &str,
     filetype: &str,
-    document_details: Option<Value>,
 ) -> Result<Document> {
     let new_document = Document {
         id,
         title: title.to_string(),
         filetype: filetype.to_string(),
-        document_details,
     };
     diesel::insert_into(schema::documents::table)
         .values(&new_document)

@@ -1,6 +1,6 @@
-common_endpoint_imports!();
-
 use ogn_db::documents;
+
+common_endpoint_imports!();
 
 #[get("/api/documents/num")]
 pub async fn get_num_documents(pool: web::Data<DbPool>) -> actix_web::Result<impl Responder> {
