@@ -43,8 +43,8 @@ pub fn get_num_ideas(conn: &mut PgConnection) -> Result<i64> {
         .map_err(|e| str_err!("Error loading ideas {}", e))
 }
 
-pub fn delete_idea(conn: &mut PgConnection, idea_id: IdeaId) -> Result<usize> {
-    diesel::delete(schema::ideas::table.filter(schema::ideas::id.eq(idea_id)))
+pub fn delete_idea(conn: &mut PgConnection, id: IdeaId) -> Result<usize> {
+    diesel::delete(schema::ideas::table.filter(schema::ideas::id.eq(id)))
         .execute(conn)
         .map_err(|e| str_err!("Error deleting idea {}", e))
 }

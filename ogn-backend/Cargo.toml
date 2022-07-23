@@ -20,6 +20,7 @@ crc32fast = "1.3.2"
 anyhow = { workspace = true }
 
 ogn-db = { workspace = true }
+ogn-utils = { workspace = true }
 autoservice = { workspace = true }
 
 serde = { workspace = true }

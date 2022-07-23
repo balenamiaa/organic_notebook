@@ -1,4 +1,5 @@
 use std::error::Error as StdError;
+use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -41,6 +42,14 @@ impl From<Error> for anyhow::Error {
         e.inner
     }
 }
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.inner.fmt(f)
+    }
+}
+
+impl actix_web::ResponseError for Error {}
 
 pub type Result<T> = std::result::Result<T, Error>;
 

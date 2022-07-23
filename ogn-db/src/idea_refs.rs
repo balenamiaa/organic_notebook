@@ -55,8 +55,8 @@ pub fn get_num_idea_refs(conn: &mut PgConnection) -> Result<i64> {
         .map_err(|e| str_err!("Error loading idea refs {}", e))
 }
 
-pub fn delete_idea_refs(conn: &mut PgConnection, idea_refs_id: IdeaRefId) -> Result<usize> {
-    diesel::delete(schema::idea_refs::table.filter(schema::idea_refs::id.eq(idea_refs_id)))
+pub fn delete_idea_refs(conn: &mut PgConnection, id: IdeaRefId) -> Result<usize> {
+    diesel::delete(schema::idea_refs::table.filter(schema::idea_refs::id.eq(id)))
         .execute(conn)
-        .map_err(|e| str_err!("Error deleting idea_refs {}", e))
+        .map_err(|e| str_err!("Error deleting idea ref {}", e))
 }

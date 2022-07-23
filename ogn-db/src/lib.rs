@@ -1,20 +1,20 @@
-use std::fmt::{Debug, Display, Formatter};
-
-use diesel;
-use diesel::PgConnection;
+use diesel::{self, PgConnection};
 
 use models::DocumentId;
 use result::Result;
 
 use crate::models::{
-    Document, DocumentPage, Idea, IdeaId, IdeaRef, IdeaRefId, NewIdea, NewIdeaRef,
+    Document, DocumentPage, ExtractedText, ExtractedTextId, Idea, IdeaId, IdeaRef, IdeaRefId,
+    NewExtractedText, NewIdea, NewIdeaRef,
 };
 
 #[macro_use]
 pub mod result;
 pub mod documents;
+pub mod extracted_texts;
 pub mod idea_refs;
 pub mod ideas;
+
 pub mod model_impls;
 pub mod models;
 pub mod schema;
