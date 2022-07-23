@@ -1,4 +1,5 @@
 use serde_derive::{Deserialize, Serialize};
+use ogn_db::documents;
 
 common_endpoint_imports!();
 
@@ -17,7 +18,7 @@ pub async fn get_documents(
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
 
-    let documents = ogn_db::get_documents(conn.deref_mut(), query.page_num, query.page_size)?;
+    let documents = documents::get_documents(conn.deref_mut(), query.page_num, query.page_size)?;
 
     let documents_json = serde_json::json!({
         "documents": documents,

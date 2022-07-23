@@ -2,9 +2,11 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
+use ogn_db::documents;
+
 common_endpoint_imports!();
 
-#[post("/api/upload_document")]
+#[post("/api/documents")]
 pub async fn upload_document(
     mut files: Multipart,
     pool: web::Data<DbPool>,
@@ -38,14 +40,14 @@ pub async fn upload_document(
         };
 
         let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
-        if ogn_db::document_exists(conn.deref_mut(), id)? {
+        if documents::document_exists(conn.deref_mut(), id)? {
             return Err(ErrorBadRequest("bad request"));
         }
 
         let mut file = File::create(Path::new(DOCUMENT_ROOTDIR).join(format!("{}.{ext}", id.0)))?;
         file.write_all(&bytes)?;
 
-        let _created_document = ogn_db::create_document(conn.deref_mut(), id, &title, &ext, None);
+        let _created_document = documents::create_document(conn.deref_mut(), id, &title, &ext, None);
     }
 
     Ok("")

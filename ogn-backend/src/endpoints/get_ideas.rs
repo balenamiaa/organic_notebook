@@ -1,4 +1,5 @@
 use serde_derive::{Deserialize, Serialize};
+use ogn_db::ideas;
 
 common_endpoint_imports!();
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -15,7 +16,7 @@ pub async fn get_ideas(
     let query = query_params.into_inner();
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
-    let ideas = ogn_db::get_ideas(conn.deref_mut(), query.page_num, query.page_size)?;
+    let ideas = ideas::get_ideas(conn.deref_mut(), query.page_num, query.page_size)?;
 
     let ideas_json = serde_json::json!({
         "ideas": ideas,

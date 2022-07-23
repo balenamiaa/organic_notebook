@@ -2,7 +2,7 @@ use serde_derive::{Deserialize, Serialize};
 
 common_endpoint_imports!();
 
-#[get("/api/get_num_idea_refs_for_idea/{id}")]
+#[get("/api/idea_refs_for_idea/{id}/num")]
 pub async fn get_num_idea_refs_for_idea(
     path: web::Path<(IdeaId,)>,
     pool: web::Data<DbPool>,
