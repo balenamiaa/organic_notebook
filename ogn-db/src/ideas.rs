@@ -1,9 +1,9 @@
-use diesel::PgConnection;
 use diesel::prelude::*;
+use diesel::PgConnection;
 
-use crate::{Idea, IdeaId, ideas, NewIdea};
 use crate::result::Result;
 use crate::schema;
+use crate::{ideas, Idea, IdeaId, NewIdea};
 
 pub fn create_idea(conn: &mut PgConnection, label: &str) -> Result<Idea> {
     let new_idea = NewIdea {

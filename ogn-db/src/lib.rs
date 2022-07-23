@@ -12,12 +12,12 @@ use crate::models::{
 
 #[macro_use]
 pub mod result;
+pub mod documents;
+pub mod idea_refs;
+pub mod ideas;
 pub mod model_impls;
 pub mod models;
 pub mod schema;
-pub mod idea_refs;
-pub mod ideas;
-pub mod documents;
 
 pub fn get_idea_refs_for_idea(
     conn: &mut PgConnection,

@@ -1,10 +1,10 @@
 use std::path::Path;
 
 use actix_cors::Cors;
-use actix_web::{App, HttpServer, middleware};
 use actix_web::web::Data;
-use diesel::{PgConnection, r2d2};
+use actix_web::{middleware, App, HttpServer};
 use diesel::r2d2::ConnectionManager;
+use diesel::{r2d2, PgConnection};
 use dotenv_codegen::dotenv;
 
 use autoservice::auto_service;
@@ -48,9 +48,9 @@ async fn main() -> anyhow::Result<()> {
         auto_service!(app; "endpoints");
         app
     })
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await?;
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await?;
 
     Ok(())
 }

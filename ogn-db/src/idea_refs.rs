@@ -1,10 +1,10 @@
-use diesel::PgConnection;
 use diesel::prelude::*;
+use diesel::PgConnection;
 use serde_json::Value;
 
-use crate::{DocumentPage, IdeaId, IdeaRef, IdeaRefId, NewIdeaRef};
 use crate::result::Result;
 use crate::schema;
+use crate::{DocumentPage, IdeaId, IdeaRef, IdeaRefId, NewIdeaRef};
 
 pub fn create_idea_ref(
     conn: &mut PgConnection,

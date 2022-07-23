@@ -4,7 +4,6 @@ diesel::table! {
     documents (id) {
         id -> Int4,
         title -> Text,
-        document_details -> Nullable<Json>,
         filetype -> Varchar,
     }
 }
@@ -15,7 +14,7 @@ diesel::table! {
         document_id -> Int4,
         document_page -> Nullable<Int4>,
         idea_ref -> Int4,
-        idea_details -> Nullable<Json>,
+        idea_ref_text -> Text,
     }
 }
 

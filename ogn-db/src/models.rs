@@ -2,11 +2,8 @@ use diesel::deserialize::FromStaticSqlRow;
 use diesel::{Insertable, Queryable};
 use diesel_derive_newtype::DieselNewType;
 use serde_derive::{Deserialize, Serialize};
-use serde_json::Value;
 
-use super::schema::documents;
-use super::schema::idea_refs;
-use super::schema::ideas;
+use crate::schema;
 
 #[derive(Clone, Copy, Debug, DieselNewType)]
 pub struct DocumentId(pub i32);
@@ -18,11 +15,10 @@ pub struct IdeaId(pub i32);
 pub struct IdeaRefId(pub i32);
 
 #[derive(Clone, Debug, Queryable, Insertable, Serialize, Deserialize)]
-#[diesel(table_name = documents)]
+#[diesel(table_name = schema::documents)]
 pub struct Document {
     pub id: DocumentId,
     pub title: String,
-    pub document_details: Option<Value>,
     pub filetype: String,
 }
 
@@ -43,7 +39,7 @@ pub struct IdeaRef {
     pub id: IdeaRefId,
     pub doc_page: DocumentPage,
     pub idea_ref: IdeaId,
-    pub idea_details: Option<Value>,
+    pub idea_ref_text: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -55,7 +51,7 @@ pub struct NewIdea {
 pub struct NewIdeaRef {
     pub doc_page: DocumentPage,
     pub idea_ref: IdeaId,
-    pub idea_details: Option<Value>,
+    pub idea_ref_text: String,
 }
 
 impl<DB: diesel::backend::Backend, ST0, ST1> Queryable<(ST0, ST1), DB> for Idea
@@ -75,9 +71,9 @@ where
 impl<DB: diesel::backend::Backend, ST0, ST1, ST2, ST3, ST4> Queryable<(ST0, ST1, ST2, ST3, ST4), DB>
     for IdeaRef
 where
-    (i32, i32, Option<i32>, IdeaId, Option<Value>): FromStaticSqlRow<(ST0, ST1, ST2, ST3, ST4), DB>,
+    (i32, i32, Option<i32>, IdeaId, String): FromStaticSqlRow<(ST0, ST1, ST2, ST3, ST4), DB>,
 {
-    type Row = (i32, i32, Option<i32>, IdeaId, Option<Value>);
+    type Row = (i32, i32, Option<i32>, IdeaId, String);
 
     fn build(row: Self::Row) -> diesel::deserialize::Result<Self> {
         Ok(Self {
@@ -87,40 +83,41 @@ where
                 page_number: row.2.try_into()?,
             },
             idea_ref: row.3.try_into()?,
-            idea_details: row.4.try_into()?,
+            idea_ref_text: row.4.try_into()?,
         })
     }
 }
 
-impl Insertable<ideas::table> for NewIdea {
-    type Values =
-        <(Option<diesel::dsl::Eq<ideas::label, String>>,) as Insertable<ideas::table>>::Values;
+impl Insertable<schema::ideas::table> for NewIdea {
+    type Values = <(Option<diesel::dsl::Eq<schema::ideas::label, String>>,) as Insertable<
+        schema::ideas::table,
+    >>::Values;
 
     fn values(self) -> Self::Values {
         use diesel::prelude::*;
 
-        (Some(ideas::label.eq(self.label)),).values()
+        (Some(schema::ideas::label.eq(self.label)),).values()
     }
 }
 
-impl Insertable<idea_refs::table> for NewIdeaRef {
+impl Insertable<schema::idea_refs::table> for NewIdeaRef {
     type Values = <(
-        Option<diesel::dsl::Eq<idea_refs::document_id, i32>>,
-        Option<diesel::dsl::Eq<idea_refs::document_page, i32>>,
-        Option<diesel::dsl::Eq<idea_refs::idea_ref, i32>>,
-        Option<diesel::dsl::Eq<idea_refs::idea_details, Value>>,
-    ) as Insertable<idea_refs::table>>::Values;
+        Option<diesel::dsl::Eq<schema::idea_refs::document_id, i32>>,
+        Option<diesel::dsl::Eq<schema::idea_refs::document_page, i32>>,
+        Option<diesel::dsl::Eq<schema::idea_refs::idea_ref, i32>>,
+        Option<diesel::dsl::Eq<schema::idea_refs::idea_ref_text, String>>,
+    ) as Insertable<schema::idea_refs::table>>::Values;
 
     fn values(self) -> Self::Values {
         use diesel::prelude::*;
 
         (
-            Some(idea_refs::document_id.eq(self.doc_page.document_id.0)),
+            Some(schema::idea_refs::document_id.eq(self.doc_page.document_id.0)),
             self.doc_page
                 .page_number
-                .map(|x| idea_refs::document_page.eq(x)),
-            Some(idea_refs::idea_ref.eq(self.idea_ref.0)),
-            self.idea_details.map(|x| idea_refs::idea_details.eq(x)),
+                .map(|x| schema::idea_refs::document_page.eq(x)),
+            Some(schema::idea_refs::idea_ref.eq(self.idea_ref.0)),
+            Some(schema::idea_refs::idea_ref_text.eq(self.idea_ref_text)),
         )
             .values()
     }

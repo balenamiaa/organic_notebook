@@ -1,10 +1,10 @@
-use diesel::PgConnection;
 use diesel::prelude::*;
+use diesel::PgConnection;
 use serde_json::Value;
 
-use crate::{Document, DocumentId};
 use crate::result::Result;
 use crate::schema;
+use crate::{Document, DocumentId};
 
 pub fn create_document(
     conn: &mut PgConnection,

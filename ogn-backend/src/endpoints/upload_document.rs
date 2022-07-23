@@ -47,7 +47,8 @@ pub async fn upload_document(
         let mut file = File::create(Path::new(DOCUMENT_ROOTDIR).join(format!("{}.{ext}", id.0)))?;
         file.write_all(&bytes)?;
 
-        let _created_document = documents::create_document(conn.deref_mut(), id, &title, &ext, None);
+        let _created_document =
+            documents::create_document(conn.deref_mut(), id, &title, &ext, None);
     }
 
     Ok("")

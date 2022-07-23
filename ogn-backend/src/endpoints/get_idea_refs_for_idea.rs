@@ -1,5 +1,5 @@
-use serde_derive::{Deserialize, Serialize};
 use ogn_db::idea_refs;
+use serde_derive::{Deserialize, Serialize};
 
 common_endpoint_imports!();
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -19,7 +19,8 @@ pub async fn get_idea_refs_for_idea(
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
 
-    let idea_refs = ogn_db::get_idea_refs_for_idea(conn.deref_mut(), id, query.page_num, query.page_size)?;
+    let idea_refs =
+        ogn_db::get_idea_refs_for_idea(conn.deref_mut(), id, query.page_num, query.page_size)?;
 
     let idea_refs_json = serde_json::json!({
         "idea_refs": idea_refs,
