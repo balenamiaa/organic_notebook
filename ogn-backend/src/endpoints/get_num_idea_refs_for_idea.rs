@@ -1,5 +1,3 @@
-use serde_derive::{Deserialize, Serialize};
-
 common_endpoint_imports!();
 
 #[get("/api/idea_refs_for_idea/{id}/num")]

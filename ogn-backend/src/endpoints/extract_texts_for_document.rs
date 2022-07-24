@@ -3,7 +3,8 @@ use std::path::Path;
 use actix_web::error::ErrorNotFound;
 
 use ogn_db::extracted_texts;
-use ogn_utils::{PDFDocument, TextExtractor};
+use ogn_utils::documents::PDFDocument;
+use ogn_utils::extractor::TextExtractor;
 
 common_endpoint_imports!();
 

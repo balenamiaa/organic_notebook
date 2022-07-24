@@ -1,7 +1,5 @@
 use serde_derive::{Deserialize, Serialize};
 
-use ogn_db::idea_refs;
-
 common_endpoint_imports!();
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct QueryParams {

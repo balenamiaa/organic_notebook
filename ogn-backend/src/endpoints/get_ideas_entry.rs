@@ -1,5 +1,3 @@
-use serde_derive::{Deserialize, Serialize};
-
 use ogn_db::ideas;
 
 common_endpoint_imports!();
