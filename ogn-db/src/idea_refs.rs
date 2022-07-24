@@ -1,6 +1,5 @@
 use diesel::prelude::*;
 use diesel::PgConnection;
-use serde_json::Value;
 
 use crate::result::Result;
 use crate::schema;

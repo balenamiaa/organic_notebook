@@ -3,26 +3,25 @@ use std::io::Write;
 use std::path::Path;
 use std::str::FromStr;
 
-use futures::{FutureExt, StreamExt, TryFutureExt};
-use http::{Request, Uri};
+use http::Uri;
 use hyper::body::HttpBody;
-use hyper::{Body, Client};
+use hyper::Client;
 
 use crate::documents::NonPDFDocument;
 use crate::onedrive::Onedrive;
-use crate::result::{Error, Result};
+use crate::result::Result;
 
 #[async_trait::async_trait]
 pub trait ToPdf
 where
     Self: Sized,
 {
-    async fn convert(&self, onedrive: &Onedrive, output_path: &Path) -> Result<()>;
+    async fn convert_to_pdf(&self, onedrive: &Onedrive, output_path: &Path) -> Result<()>;
 }
 
 #[async_trait::async_trait]
 impl ToPdf for NonPDFDocument {
-    async fn convert(&self, onedrive: &Onedrive, output_path: &Path) -> Result<()> {
+    async fn convert_to_pdf(&self, onedrive: &Onedrive, output_path: &Path) -> Result<()> {
         let root_site = onedrive.get_root_site().await?;
         let drive = onedrive.drive_exists(&root_site.id).await?;
 
