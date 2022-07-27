@@ -3,9 +3,9 @@
 members = [
     "ogn-db",
     "ogn-backend",
+    "ogn-utils",
     "autoservice-codegen",
     "autoservice",
-    "ogn-utils"
 ]
 
 [workspace.dependencies]

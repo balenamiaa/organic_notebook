@@ -9,8 +9,7 @@ pub struct QueryParams {
     page_size: i64,
 }
 
-#[get("/api/ideas")]
-pub async fn get_ideas(
+pub(crate) async fn get_ideas_handler(
     query_params: web::Query<QueryParams>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
@@ -25,4 +24,12 @@ pub async fn get_ideas(
     });
 
     Ok(web::Json(ideas_json))
+}
+
+#[get("/api/ideas")]
+pub async fn get_ideas(
+    query_params: web::Query<QueryParams>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    get_ideas_handler(query_params, pool).await
 }

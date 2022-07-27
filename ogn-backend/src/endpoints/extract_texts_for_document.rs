@@ -8,8 +8,7 @@ use ogn_utils::extractor::TextExtractor;
 
 common_endpoint_imports!();
 
-#[post("/api/extracted_texts/{document_id}")]
-pub async fn extract_texts_for_document(
+pub(crate) async fn extract_texts_for_document_handler(
     path: web::Path<(DocumentId,)>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
@@ -35,4 +34,12 @@ pub async fn extract_texts_for_document(
         extracted_texts::create_extracted_text_bulk(conn.deref_mut(), &extracted_texts, &docpages)?;
 
     Ok(web::Json(extracted_texts))
+}
+
+#[post("/api/extracted_texts/{document_id}")]
+pub async fn extract_texts_for_document(
+    path: web::Path<(DocumentId,)>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    extract_texts_for_document_handler(path, pool).await
 }

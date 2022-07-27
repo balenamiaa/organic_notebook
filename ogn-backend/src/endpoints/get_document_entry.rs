@@ -2,8 +2,7 @@ use ogn_db::documents;
 
 common_endpoint_imports!();
 
-#[get("/api/documents/{id}")]
-pub async fn get_document_entry(
+pub(crate) async fn get_document_entry_handler(
     path: web::Path<(DocumentId,)>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
@@ -12,4 +11,12 @@ pub async fn get_document_entry(
     let document = documents::get_document(conn.deref_mut(), id)?;
 
     Ok(web::Json(document))
+}
+
+#[get("/api/documents/{id}")]
+pub async fn get_document_entry(
+    path: web::Path<(DocumentId,)>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    get_document_entry_handler(path, pool).await
 }

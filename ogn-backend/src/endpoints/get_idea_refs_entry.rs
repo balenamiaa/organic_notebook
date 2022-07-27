@@ -2,8 +2,7 @@ use ogn_db::idea_refs;
 
 common_endpoint_imports!();
 
-#[get("/api/idea_refs/{id}")]
-pub async fn get_idea_refs_entry(
+pub(crate) async fn get_idea_refs_entry_handler(
     path: web::Path<(IdeaRefId,)>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
@@ -12,4 +11,12 @@ pub async fn get_idea_refs_entry(
     let idea_ref = idea_refs::get_idea_ref(conn.deref_mut(), id)?;
 
     Ok(web::Json(idea_ref))
+}
+
+#[get("/api/idea_refs/{id}")]
+pub async fn get_idea_refs_entry(
+    path: web::Path<(IdeaRefId,)>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    get_idea_refs_entry_handler(path, pool).await
 }

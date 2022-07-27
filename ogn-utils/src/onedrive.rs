@@ -121,7 +121,7 @@ pub struct Onedrive {
 }
 
 impl Onedrive {
-    const SITE_NAME: &'static str = "organic_notebook"; // TODO: can't seem to create a site from the API
+    const _SITE_NAME: &'static str = "organic_notebook"; // TODO: can't seem to create a site from the API
     const DRIVE_NAME_FOR_CONVERSION: &'static str = "document_conversion";
 
     pub fn new(token: &str) -> Self {

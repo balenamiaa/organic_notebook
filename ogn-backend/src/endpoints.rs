@@ -18,35 +18,25 @@ macro_rules! common_endpoint_imports {
 }
 
 pub mod create_idea;
-// #[post("/api/ideas")]
 pub mod delete_idea;
 pub mod get_ideas;
-// #[get("/api/ideas")]
 pub mod get_ideas_entry;
-// #[get("/api/ideas/{id}")]
-pub mod get_num_ideas; // #[get("/api/ideas/num")] // #[delete("/api/ideas/{id}")]
+pub mod get_num_ideas;
 
 pub mod create_idea_ref;
-// #[post("/api/idea_refs")]
 pub mod delete_idea_ref;
 pub mod get_idea_refs;
-// #[get("/api/idea_refs")]
 pub mod get_idea_refs_entry;
-// #[get("/api/idea_refs/{id}")]
-pub mod get_num_idea_refs; // #[get("/api/idea_refs/num")] // #[delete("/api/idea_refs/{id}")]
+pub mod get_num_idea_refs;
 
 pub mod get_idea_refs_for_idea;
-// #[get("/api/idea_refs_for_idea/{id}")]
-pub mod get_num_idea_refs_for_idea; // #[get("/api/idea_refs_for_idea/{id}/num")]
+pub mod get_num_idea_refs_for_idea;
 
 pub mod delete_document;
 pub mod get_document_entry;
-// #[get("/api/documents/{id}")]
 pub mod get_documents;
-// #[get("/api/documents")]
 pub mod get_num_documents;
-// #[get("/api/documents/num")]
-pub mod upload_document; // #[post("/api/documents")] // #[delete("/api/documents/{id}")]
+pub mod upload_document;
 
 pub mod delete_extracted_texts_for_document;
-pub mod extract_texts_for_document; // #[post("/api/extracted_texts/{document_id}")] // #[delete("/api/extracted_texts/{document_id}")]
+pub mod extract_texts_for_document;

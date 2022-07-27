@@ -1,3 +1,5 @@
+#![feature(int_roundings)]
+
 use std::path::Path;
 
 use actix_cors::Cors;

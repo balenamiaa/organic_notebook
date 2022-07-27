@@ -10,8 +10,7 @@ use ogn_utils::onedrive::Onedrive;
 
 common_endpoint_imports!();
 
-#[post("/api/documents")]
-pub async fn upload_document(
+pub(crate) async fn upload_document_handler(
     mut files: Multipart,
     pool: web::Data<DbPool>,
     onedrive: web::Data<Onedrive>,
@@ -74,4 +73,13 @@ pub async fn upload_document(
     }
 
     Ok("")
+}
+
+#[post("/api/documents")]
+pub async fn upload_document(
+    files: Multipart,
+    pool: web::Data<DbPool>,
+    onedrive: web::Data<Onedrive>,
+) -> actix_web::Result<impl Responder> {
+    upload_document_handler(files, pool, onedrive).await
 }

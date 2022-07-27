@@ -10,8 +10,7 @@ pub struct QueryParams {
     page_size: i64,
 }
 
-#[get("/api/documents")]
-pub async fn get_documents(
+pub(crate) async fn get_documents_handler(
     query_params: web::Query<QueryParams>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
@@ -27,4 +26,12 @@ pub async fn get_documents(
     });
 
     Ok(web::Json(documents_json))
+}
+
+#[get("/api/documents")]
+pub async fn get_documents(
+    query_params: web::Query<QueryParams>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    get_documents_handler(query_params, pool).await
 }

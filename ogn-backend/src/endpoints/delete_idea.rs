@@ -2,8 +2,7 @@ use ogn_db::ideas;
 
 common_endpoint_imports!();
 
-#[delete("/api/ideas/{id}")]
-pub async fn delete_idea(
+pub(crate) async fn delete_idea_handler(
     path: web::Path<(IdeaId,)>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
@@ -12,4 +11,12 @@ pub async fn delete_idea(
 
     let count_deleted = ideas::delete_idea(conn.deref_mut(), id)?;
     Ok(web::Json(count_deleted))
+}
+
+#[delete("/api/ideas/{id}")]
+pub async fn delete_idea(
+    path: web::Path<(IdeaId,)>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    delete_idea_handler(path, pool).await
 }

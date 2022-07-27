@@ -2,8 +2,7 @@ use ogn_db::extracted_texts;
 
 common_endpoint_imports!();
 
-#[delete("/api/extracted_texts/{document_id}")]
-pub async fn delete_extracted_texts_for_document(
+pub(crate) async fn delete_extracted_texts_for_document_handler(
     path: web::Path<(DocumentId,)>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
@@ -12,4 +11,12 @@ pub async fn delete_extracted_texts_for_document(
 
     let count_deleted = extracted_texts::delete_extracted_texts_for_document(conn.deref_mut(), id)?;
     Ok(web::Json(count_deleted))
+}
+
+#[delete("/api/extracted_texts/{document_id}")]
+pub async fn delete_extracted_texts_for_document(
+    path: web::Path<(DocumentId,)>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    delete_extracted_texts_for_document_handler(path, pool).await
 }

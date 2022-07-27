@@ -2,8 +2,7 @@ use ogn_db::idea_refs;
 
 common_endpoint_imports!();
 
-#[post("/api/idea_refs")]
-pub async fn create_idea_ref(
+pub(crate) async fn create_idea_ref_handler(
     pool: web::Data<DbPool>,
     json_body: web::Json<NewIdeaRef>,
 ) -> actix_web::Result<impl Responder> {
@@ -17,4 +16,12 @@ pub async fn create_idea_ref(
     )?;
 
     Ok(web::Json(idea_ref))
+}
+
+#[post("/api/idea_refs")]
+pub async fn create_idea_ref(
+    pool: web::Data<DbPool>,
+    json_body: web::Json<NewIdeaRef>,
+) -> actix_web::Result<impl Responder> {
+    create_idea_ref_handler(pool, json_body).await
 }
