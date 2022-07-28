@@ -15,4 +15,4 @@ jobs:
       - uses: jiro4989/setup-nim-action@v1
         with:
           nim-version: '1.6.6'
-      - run: nim c ogn-test/main.nim
+      - run: nim c -r ogn-test/main.nim
