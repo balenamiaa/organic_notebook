@@ -1,52 +1,10 @@
-use std::error::Error as StdError;
-use std::path::{Path, PathBuf};
-use std::process::{Command, ExitStatus, Stdio};
+use std::path::Path;
+use std::process::{Command, Stdio};
 
 use anyhow::anyhow;
 
-#[derive(Debug)]
-pub struct Error {
-    inner: anyhow::Error,
-}
-
-trait ErrorWrapper {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        None
-    }
-}
-
-impl<T> ErrorWrapper for T
-where
-    T: std::error::Error + Send + Sync + 'static,
-{
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        StdError::source(self)
-    }
-}
-
-impl<T: ErrorWrapper + Sync + Send + 'static> From<T> for Error {
-    fn from(e: T) -> Self {
-        Self {
-            inner: if let Some(x) = e.source() {
-                anyhow!("{}", x)
-            } else {
-                anyhow!("text extraction error")
-            },
-        }
-    }
-}
-
-impl From<Error> for anyhow::Error {
-    fn from(e: Error) -> Self {
-        e.inner
-    }
-}
-
-pub type Result<T> = std::result::Result<T, Error>;
-
-pub struct PDFDocument {
-    path: PathBuf,
-}
+use crate::documents::PDFDocument;
+use crate::result::{Error, Result};
 
 pub trait TextExtractor
 where
@@ -78,9 +36,10 @@ impl TextExtractor for PDFDocument {
             let status = output.status.code().unwrap_or(0);
 
             if status != 0 {
-                return Err(Error {
-                    inner: anyhow!("pdf2text failed with status {}", status),
-                });
+                return Err(Error::new(anyhow!(
+                    "pdf2text failed with status {}",
+                    status
+                )));
             } else {
                 if output.stdout.is_empty() {
                     break;

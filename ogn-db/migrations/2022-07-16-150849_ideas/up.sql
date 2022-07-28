@@ -11,7 +11,7 @@ CREATE TABLE idea_refs
     document_id   INTEGER NOT NULL,
     document_page INTEGER,
     idea_ref      INTEGER NOT NULL,
-    idea_details  JSON,
+    idea_ref_text TEXT    NOT NULL,
     FOREIGN KEY (document_id) REFERENCES documents (id),
     FOREIGN KEY (idea_ref) REFERENCES ideas (id)
 );

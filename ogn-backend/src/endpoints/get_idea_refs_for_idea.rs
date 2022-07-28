@@ -7,8 +7,7 @@ pub struct QueryParams {
     page_size: i64,
 }
 
-#[get("/api/get_idea_refs_for_idea/{id}")]
-pub async fn get_idea_refs_for_idea(
+pub(crate) async fn get_idea_refs_for_idea_handler(
     path: web::Path<(IdeaId,)>,
     query_params: web::Query<QueryParams>,
     pool: web::Data<DbPool>,
@@ -27,4 +26,13 @@ pub async fn get_idea_refs_for_idea(
     });
 
     Ok(web::Json(idea_refs_json))
+}
+
+#[get("/api/idea_refs_for_idea/{id}")]
+pub async fn get_idea_refs_for_idea(
+    path: web::Path<(IdeaId,)>,
+    query_params: web::Query<QueryParams>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    get_idea_refs_for_idea_handler(path, query_params, pool).await
 }
