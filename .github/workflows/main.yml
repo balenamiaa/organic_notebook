@@ -1,0 +1,49 @@
+name: CI
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+env:
+  DB_HOST: localhost
+  DATABASE_DOCUMENT_ROOTDIR: ./documents
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/organic_notebook_ci
+  PDF2TEXT_PATH: ~/pdftotext
+  ONEDRIVE_ACCESS_TOKEN: <ONEDRIVE ACCESS TOKEN>
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: organic_notebook_ci        
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v3
+      - uses: SpicyPizza/create-envfile@v1.3
+        with:
+          file_name: .env
+      - uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: '1.6.6'
+      - uses: actions-rs/toolchain@v1.0.6
+      - uses: actions-rs/cargo@v1.0.1
+        with:
+          command: install 
+          args: diesel_cli --git https://github.com/diesel-rs/diesel --no-default-features --features "postgres"
+          toolchain: nightly
+      - run: diesel migration run --migration-dir ogn-db/migrations
+      - run: cargo +nightly build
+      - run: |
+          cargo +nightly run &
+          sleep 3
+          nim c -r ogn-test/main.nim
