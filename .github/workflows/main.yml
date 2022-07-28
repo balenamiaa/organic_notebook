@@ -6,16 +6,33 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-  workflow_dispatch:
+env:
+  DATABASE_DOCUMENT_ROOTDIR: ./documents
+  DATABASE_URL: postgres://postgres:ci_pass12345@localhost:5432/organic_notebook_ci
+  PDF2TExT_PATH: ~/pdftotext
+  ONEDRIVE_ACCESS_TOKEN: <ONEDRIVE ACCESS TOKEN>
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - uses: jiro4989/setup-nim-action@v1
         with:
           nim-version: '1.6.6'
       - uses: actions-rs/toolchain@v1.0.6
+      - uses: ducharmemp/diesel-cli-action@0.1.0
+        with:
+          migration_directories: "ogn-db/migrations"
       - uses: actions-rs/cargo@v1.0.1
         with:
           command: run
