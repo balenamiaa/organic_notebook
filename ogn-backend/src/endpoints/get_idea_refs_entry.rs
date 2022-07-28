@@ -8,7 +8,8 @@ pub(crate) async fn get_idea_refs_entry_handler(
 ) -> actix_web::Result<impl Responder> {
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
     let (id,) = path.into_inner();
-    let idea_ref = idea_refs::get_idea_ref(conn.deref_mut(), id)?;
+    let idea_ref = idea_refs::get_idea_ref(conn.deref_mut(), id)?
+        .ok_or(actix_web::error::ErrorNotFound(""))?;
 
     Ok(web::Json(idea_ref))
 }

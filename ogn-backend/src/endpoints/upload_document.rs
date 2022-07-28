@@ -15,7 +15,11 @@ pub(crate) async fn upload_document_handler(
     pool: web::Data<DbPool>,
     onedrive: web::Data<Onedrive>,
 ) -> actix_web::Result<impl Responder> {
+    let mut has_file = false;
+    let mut created_documents = vec![];
     while let Some(Ok(mut item)) = files.next().await {
+        has_file = true;
+
         let _mime = item.content_type();
         let mut bytes = vec![];
         while let Some(Ok(bytes_ty)) = item.next().await {
@@ -69,10 +73,15 @@ pub(crate) async fn upload_document_handler(
             }
         }
 
-        let _created_document = documents::create_document(conn.deref_mut(), id, &title, &ext);
+        let _created_document = documents::create_document(conn.deref_mut(), id, &title, &ext)?;
+        created_documents.push(_created_document);
     }
 
-    Ok("")
+    if created_documents.is_empty() {
+        Err(ErrorBadRequest("no file"))
+    } else {
+        Ok(web::Json(created_documents))
+    }
 }
 
 #[post("/api/documents")]

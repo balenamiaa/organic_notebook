@@ -1,3 +1,5 @@
+use std::{fs::remove_file, path::Path};
+
 use ogn_db::documents;
 
 common_endpoint_imports!();
@@ -10,6 +12,7 @@ pub(crate) async fn delete_document_handler(
     let (id,) = path.into_inner();
 
     let count_deleted = documents::delete_document(conn.deref_mut(), id)?;
+    remove_file(Path::new(&format!("{}/{}.pdf", DOCUMENT_ROOTDIR, id.0))).unwrap();
     Ok(web::Json(count_deleted))
 }
 

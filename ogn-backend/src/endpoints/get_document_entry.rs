@@ -8,7 +8,8 @@ pub(crate) async fn get_document_entry_handler(
 ) -> actix_web::Result<impl Responder> {
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
     let (id,) = path.into_inner();
-    let document = documents::get_document(conn.deref_mut(), id)?;
+    let document = documents::get_document(conn.deref_mut(), id)?
+        .ok_or(actix_web::error::ErrorNotFound(""))?;
 
     Ok(web::Json(document))
 }
