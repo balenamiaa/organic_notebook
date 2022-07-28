@@ -1,2 +1,2 @@
-DROP TABLE ideas;
 DROP TABLE idea_refs;
+DROP TABLE ideas;

@@ -7,7 +7,7 @@ macro_rules! common_endpoint_imports {
         #[allow(unused_imports)]
         use actix_web::error::{ErrorBadRequest, ErrorInternalServerError};
         #[allow(unused_imports)]
-        use actix_web::{get, post, web, Responder};
+        use actix_web::{delete, get, post, put, web, Responder};
         #[allow(unused_imports)]
         use futures_util::StreamExt;
         #[allow(unused_imports)]
@@ -18,6 +18,24 @@ macro_rules! common_endpoint_imports {
 }
 
 pub mod create_idea;
+pub mod delete_idea;
+pub mod get_ideas;
+pub mod get_ideas_entry;
+pub mod get_num_ideas;
+
+pub mod create_idea_ref;
+pub mod delete_idea_ref;
+pub mod get_idea_refs;
+pub mod get_idea_refs_entry;
+pub mod get_num_idea_refs;
+
+pub mod get_idea_refs_for_idea;
+pub mod get_num_idea_refs_for_idea;
+
+pub mod delete_document;
+pub mod get_document_entry;
+pub mod get_documents;
+pub mod get_num_documents;
 pub mod create_idea_ref;
 pub mod get_document_entry;
 pub mod get_documents;
@@ -31,3 +49,6 @@ pub mod get_num_idea_refs;
 pub mod get_num_idea_refs_for_idea;
 pub mod get_num_ideas;
 pub mod upload_document;
+
+pub mod delete_extracted_texts_for_document;
+pub mod extract_texts_for_document;

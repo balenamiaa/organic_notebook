@@ -3,15 +3,17 @@
 members = [
     "ogn-db",
     "ogn-backend",
+    "ogn-utils",
     "autoservice-codegen",
     "autoservice",
-    "ogn-extractors"
 ]
 
 [workspace.dependencies]
+tokio = "1.20.0"
 actix-web = { version = "4.1.0" }
 actix-multipart = "0.4.0"
 diesel = { git = "https://github.com/diesel-rs/diesel.git" }
+futures = "0.3.21"
 futures-util = "0.3.21"
 dotenv = "0.15.0"
 serde = "1.0.139"
@@ -19,8 +21,10 @@ serde_json = "1.0.82"
 serde_derive = "1.0.139"
 log = "0.4.17"
 anyhow = "1.0.58"
+async-trait = "0.1.56"
 
 
 ogn-db = { path = "ogn-db" }
+ogn-utils = { path = "ogn-utils" }
 autoservice = { path = "./autoservice" }
 

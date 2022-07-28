@@ -1,20 +1,22 @@
-use serde_derive::{Deserialize, Serialize};
+use ogn_db::ideas;
 
 common_endpoint_imports!();
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct QueryParams {
-    page_num: i64,
-    page_size: i64,
-}
 
-#[get("/api/idea/{id}")]
-pub async fn get_ideas_entry(
+pub(crate) async fn get_ideas_entry_handler(
     path: web::Path<(IdeaId,)>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
     let (id,) = path.into_inner();
-    let idea = ogn_db::get_idea(conn.deref_mut(), id)?;
+    let idea = ideas::get_idea(conn.deref_mut(), id)?.ok_or(actix_web::error::ErrorNotFound(""))?;
 
     Ok(web::Json(idea))
+}
+
+#[get("/api/ideas/{id}")]
+pub async fn get_ideas_entry(
+    path: web::Path<(IdeaId,)>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    get_ideas_entry_handler(path, pool).await
 }

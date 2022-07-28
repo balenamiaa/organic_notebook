@@ -1,0 +1,37 @@
+cargo-features = ["workspace-inheritance"]
+[package]
+name = "ogn-utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+
+[dependencies.actix-web]
+workspace = true
+
+[dependencies.http]
+version = "0.2.8"
+
+[dependencies.hyper]
+version = "0.14.20"
+features = ["full"] #TODO: find out what we need and use only those features because of compilation overhead of 'full'
+
+[dependencies.serde_derive]
+workspace = true
+
+[dependencies.serde_json]
+workspace = true
+
+[dependencies.serde]
+workspace = true
+
+[dependencies.futures]
+workspace = true
+
+[dependencies.tokio]
+workspace = true
+features = ["fs"]
+
+[dependencies.async-trait]
+workspace = true
