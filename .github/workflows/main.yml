@@ -8,8 +8,8 @@ on:
     branches: [ "master" ]
 env:
   DATABASE_DOCUMENT_ROOTDIR: ./documents
-  DATABASE_URL: postgres://postgres:ci_pass12345@localhost:5432/organic_notebook_ci
-  PDF2TExT_PATH: ~/pdftotext
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/organic_notebook_ci
+  PDF2TEXT_PATH: ~/pdftotext
   ONEDRIVE_ACCESS_TOKEN: <ONEDRIVE ACCESS TOKEN>
 jobs:
   build:
@@ -19,6 +19,8 @@ jobs:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: organic_notebook_ci        
+          POSTGRES_USER: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -30,9 +32,14 @@ jobs:
         with:
           nim-version: '1.6.6'
       - uses: actions-rs/toolchain@v1.0.6
-      - uses: ducharmemp/diesel-cli-action@0.1.0
+      - uses: actions-rs/cargo@v1.0.1
         with:
-          migration_directories: "ogn-db/migrations"
+          command: install diesel_cli --git https://github.com/diesel-rs/diesel --no-default-features --features "postgres"
+          toolchain: nightly
+      - uses: actions-rs/cargo@v1.0.1
+        with:
+          command: diesel migration run --migration-dir ogn-db/migrations
+          toolchain: nightly
       - uses: actions-rs/cargo@v1.0.1
         with:
           command: run
