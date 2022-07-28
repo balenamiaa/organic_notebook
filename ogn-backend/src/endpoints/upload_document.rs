@@ -15,10 +15,8 @@ pub(crate) async fn upload_document_handler(
     pool: web::Data<DbPool>,
     onedrive: web::Data<Onedrive>,
 ) -> actix_web::Result<impl Responder> {
-    let mut has_file = false;
     let mut created_documents = vec![];
     while let Some(Ok(mut item)) = files.next().await {
-        has_file = true;
 
         let _mime = item.content_type();
         let mut bytes = vec![];
