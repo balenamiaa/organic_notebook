@@ -1,5 +1,7 @@
 use serde_derive::{Deserialize, Serialize};
 
+use ogn_db::idea_refs;
+
 common_endpoint_imports!();
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct QueryParams {
@@ -7,15 +9,14 @@ pub struct QueryParams {
     page_size: i64,
 }
 
-#[get("/api/idea_refs")]
-pub async fn get_idea_refs(
+pub(crate) async fn get_idea_refs_handler(
     query_params: web::Query<QueryParams>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
     let query = query_params.into_inner();
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
-    let idea_refs = ogn_db::get_idea_refs(conn.deref_mut(), query.page_num, query.page_size)?;
+    let idea_refs = idea_refs::get_idea_refs(conn.deref_mut(), query.page_num, query.page_size)?;
 
     let idea_refs_json = serde_json::json!({
         "idea_refs": idea_refs,
@@ -23,4 +24,12 @@ pub async fn get_idea_refs(
     });
 
     Ok(web::Json(idea_refs_json))
+}
+
+#[get("/api/idea_refs")]
+pub async fn get_idea_refs(
+    query_params: web::Query<QueryParams>,
+    pool: web::Data<DbPool>,
+) -> actix_web::Result<impl Responder> {
+    get_idea_refs_handler(query_params, pool).await
 }
