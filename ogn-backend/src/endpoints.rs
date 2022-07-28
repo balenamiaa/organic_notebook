@@ -36,6 +36,18 @@ pub mod delete_document;
 pub mod get_document_entry;
 pub mod get_documents;
 pub mod get_num_documents;
+pub mod create_idea_ref;
+pub mod get_document_entry;
+pub mod get_documents;
+pub mod get_idea_refs;
+pub mod get_idea_refs_entry;
+pub mod get_idea_refs_for_idea;
+pub mod get_ideas;
+pub mod get_ideas_entry;
+pub mod get_num_documents;
+pub mod get_num_idea_refs;
+pub mod get_num_idea_refs_for_idea;
+pub mod get_num_ideas;
 pub mod upload_document;
 
 pub mod delete_extracted_texts_for_document;
