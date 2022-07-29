@@ -1,2 +1,2 @@
---gc:none
+--gc:arc
 --define:ssl
