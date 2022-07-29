@@ -1,1 +1,1 @@
-import ./ideas, ./documents
+import ./ideas, ./documents, ./idea_refs
