@@ -9,14 +9,14 @@ let createResp = makeReq("/documents", "post", "status,json", files = block:
 
 doAssert createResp.status == Http200
 
-let createdDocument = createResp.json.items.toSeq()[^1];
+let createdDocument = createResp.json.items.toSeq()[^1]
 
 doAssert createdDocument["title"].str == DOCUMENT_TITLE
 
 let getResp = makeReq("/documents/" & createdDocument["id"].str, "get", "status,json")
 
 doAssert getResp.status == Http200
-doAssert getResp.json["title"].str == DOCUMENT_TITLE
+doAssert getResp.json == createdDocument
 
 let getNumResp = makeReq("/documents//num", "get", "status,string")
 
@@ -31,15 +31,15 @@ let documentsResp = makeReq("/documents?page_num=" & $pageNum & "&page_size=" &
     $pageSize, "get", "status,json")
 
 doAssert documentsResp.status == Http200
-doAssert documentsResp.json["documents"].items.toSeq[^1]["title"].str == DOCUMENT_TITLE
+doAssert documentsResp.json["documents"].items.toSeq[^1] == createdDocument
 
-let deleteIdeaResp = makeReq("/documents/" & createdDocument["id"].str,
+let deleteDocumentResp = makeReq("/documents/" & createdDocument["id"].str,
     "delete", "status,string")
 
-doAssert deleteIdeaResp.status == Http200
-doAssert deleteIdeaResp.val.parseInt == 1 # num of deleted documents
+doAssert deleteDocumentResp.status == Http200
+doAssert deleteDocumentResp.val.parseInt == 1 # num of deleted documents
 
-let attemptGetResp = makeReq("/ideas/" & createdDocument["id"].str, "get",
+let attemptGetResp = makeReq("/documents/" & createdDocument["id"].str, "get",
     "status") # attempt to get deleted document
 
 doAssert not(attemptGetResp == Http200)

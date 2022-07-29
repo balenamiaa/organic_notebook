@@ -39,3 +39,4 @@ let attemptGetResp = makeReq("/ideas/" & createResp.json["id"].str, "get",
     "status") # attempt to get deleted idea
 
 doAssert not(attemptGetResp == Http200)
+

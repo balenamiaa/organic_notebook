@@ -28,7 +28,7 @@ pub fn get_idea_refs_for_idea(
     use diesel::prelude::*;
 
     schema::idea_refs::table
-        .filter(schema::idea_refs::id.eq(id))
+        .filter(schema::idea_refs::idea_ref.eq(id))
         .select(schema::idea_refs::all_columns)
         .limit(page_size)
         .offset(page_index * page_size)
@@ -40,7 +40,7 @@ pub fn get_num_idea_refs_for_idea(conn: &mut PgConnection, id: IdeaId) -> Result
     use diesel::prelude::*;
 
     schema::idea_refs::table
-        .filter(schema::idea_refs::id.eq(id))
+        .filter(schema::idea_refs::idea_ref.eq(id))
         .select(diesel::dsl::count_star())
         .first(conn)
         .map_err(|e| str_err!("Error loading idea refs {}", e))
