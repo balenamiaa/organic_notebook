@@ -24,6 +24,7 @@ export function documentViewerEvent(node) {
 						detail: {
 							posInScreen: _posInScreen,
 							selectionText,
+							focusNode: selection.focusNode,
 						},
 					}),
 				)

@@ -10,7 +10,7 @@
 	#root {
 		background-color: white;
 		padding: 6px;
-		border-radius: 4px;
+		border-radius: var(--border-radius);
 		width: fit-content;
 		z-index: 10000;
 		box-shadow: var(--elevation-3);

@@ -5,13 +5,16 @@
 
 	import PdfDocument from '$lib/modules/pdf/views/PdfDocument.svelte'
 	import PdfPage from '$lib/modules/pdf/views/PdfPage.svelte'
+	import Dialog from '$lib/modules/popups/Dialog.svelte'
 	import Menu from '$lib/modules/popups/Menu.svelte'
 	import MenuItem from '$lib/modules/popups/MenuItem.svelte'
 	import Popups from '$lib/modules/popups/Popups.svelte'
 	import { baseUrl } from '$lib/utils/api'
-	import { getContext } from 'svelte'
+	import { getContext, tick } from 'svelte'
 
 	export let doc
+
+	export let currentPage = -1
 
 	const { ideas } = getContext(ideasKey)
 
@@ -19,27 +22,41 @@
 	let showSelectionMenu = false
 	let menuPos = null
 	let selectionText = ''
-	let ideaAlreadyExis
+	let selectionPage = 0
+	let ideaAlreadyExist
+	let documentFile
+	let moreOption = false
+
+	$: if (documentFile && currentPage != -1) {
+		tick().then(() => {
+			moveToPage(doc.id, currentPage)
+		})
+	}
 
 	function onSelectionEnd(event) {
 		menuPos = event.detail.posInScreen
 		selectionText = event.detail.selectionText
+		selectionPage = Number(
+			event.detail.focusNode.parentElement.closest('[data-page-number]').dataset.pageNumber,
+		)
 		showSelectionMenu = true
-		ideaAlreadyExis = $ideas.ideas.findIndex((idea) => idea.label === selectionText) !== -1
+		ideaAlreadyExist = $ideas.ideas.findIndex((idea) => idea.label === selectionText) !== -1
 	}
 	function onSelectionChange(event) {
 		showSelectionMenu = false
 	}
-	async function onIdeaClick(idea) {
+	async function onIdeaRefSubmit(event) {
+		const ideaId = event.target.elements['idea-id'].value
 		const response = await createIdeaReference({
-			idea_ref: idea.id,
+			idea_ref: ideaId,
+			idea_ref_text: selectionText,
 			doc_page: {
 				document_id: doc.id,
-				page_number: 1,
+				page_number: selectionPage,
 			},
 		})
 		if (response.status === 200) {
-			ideas.refresh()
+			ideas.pushAction({ type: 'refresh-idea-ref', payload: { ideaId } })
 		}
 		showSelectionMenu = false
 	}
@@ -49,15 +66,23 @@
 
 		response = await createIdeaReference({
 			idea_ref: idea.id,
+			idea_ref_text: selectionText,
 			doc_page: {
 				document_id: doc.id,
-				page_number: 1,
+				page_number: selectionPage,
 			},
 		})
 		if (response.status === 200) {
 			ideas.refresh()
 		}
 		showSelectionMenu = false
+	}
+	async function moveToPage(documentId, page) {
+		if (doc.filetype === 'pdf') {
+			document
+				.querySelector(`[data-document-id="${documentId}"] [data-page-number="${page}"]`)
+				.scrollIntoView()
+		}
 	}
 </script>
 
@@ -66,7 +91,9 @@
 		srcUrl={`${baseUrl}/static/${doc.id}.${doc.filetype}`}
 		on:loadSuccess={(event) => {
 			numPages = event.detail.numPages
+			documentFile = event.detail
 		}}
+		documentId={doc.id}
 		on:selectionEnd={onSelectionEnd}
 		on:selectionChange={onSelectionChange}
 	>
@@ -81,14 +108,38 @@
 {/if}
 
 {#if showSelectionMenu}
-	<Popups show={true} top={menuPos?.y} left={menuPos?.x}>
+	<Popups show={!moreOption} top={menuPos?.y} left={menuPos?.x}>
 		<Menu on:outClick={() => (showSelectionMenu = false)}>
-			{#if !ideaAlreadyExis}
-				<MenuItem on:click={onCreateNewIdeaClick}>Create</MenuItem>
+			{#if !ideaAlreadyExist}
+				<MenuItem on:click={onCreateNewIdeaClick}>Create idea and ref</MenuItem>
 			{/if}
-			{#each $ideas.ideas as idea}
-				<MenuItem on:click={() => onIdeaClick(idea)}>{idea.label}</MenuItem>
-			{/each}
+			<MenuItem on:click={() => (moreOption = true)}>More options</MenuItem>
 		</Menu>
 	</Popups>
+	{#if moreOption}
+		<Dialog
+			on:close={() => {
+				showSelectionMenu = false
+				moreOption = false
+			}}
+		>
+			<svelte:fragment slot="title"
+				>Reference <span style="font-style: italic;">{selectionText}</span></svelte:fragment
+			>
+			<form on:submit|preventDefault={onIdeaRefSubmit}>
+				<label for="idea-id">Idea</label>
+				<select id="idea-id" name="idea-id">
+					{#each $ideas.ideas as idea}
+						<option value={idea.id}>{idea.label}</option>
+					{/each}
+				</select>
+				<div>
+					<button type="submit">Submit</button>
+				</div>
+			</form>
+		</Dialog>
+	{/if}
 {/if}
+
+<style>
+</style>

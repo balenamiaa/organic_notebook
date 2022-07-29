@@ -66,7 +66,7 @@
 	}
 </script>
 
-<div id="root">
+<div id="root" data-page-number={pageNumber}>
 	<canvas bind:this={canvas} />
 
 	<div bind:this={textContainer} class="textLayer" />

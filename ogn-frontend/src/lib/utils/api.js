@@ -20,3 +20,7 @@ export function getRequest(url, init) {
 export function postRequest(url, init) {
 	return fetchApi(url, { method: 'POST', ...init })
 }
+
+export function deleteRequest(url, init) {
+	return fetchApi(url, { method: 'DELETE', ...init })
+}

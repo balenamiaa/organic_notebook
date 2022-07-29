@@ -17,6 +17,7 @@
 	import { documentViewerEvent } from '$lib/utils/events/documentViewerEvent'
 
 	export let srcUrl
+	export let documentId
 
 	let loadingTask = null
 	const padding = 24
@@ -47,6 +48,7 @@
 
 <div
 	id="root"
+	data-document-id={documentId}
 	style="padding: {padding}px;"
 	use:documentViewerEvent
 	on:selectionEnd

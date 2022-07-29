@@ -4,7 +4,7 @@ import { getIdeas } from './api'
 export const ideasKey = Symbol()
 
 export function createIdeas() {
-	const { subscribe, set, update } = writable({})
+	const { subscribe, set, update } = writable({ ideas: [], actions: [] })
 
 	return {
 		subscribe,
@@ -12,7 +12,22 @@ export function createIdeas() {
 		update,
 		refresh: async () => {
 			const ideas = await (await getIdeas()).json()
-			update(() => ideas)
+			update((values) => {
+				values.ideas = ideas.ideas
+				return values
+			})
 		},
+		pushAction: (action) => {
+			update((values) => {
+				values.actions.push(action)
+				return values
+			})
+		},
+		removeAction: (index) => {
+			update((values) => {
+				values.actions.splice(index, 1)
+				return values
+			})
+		}
 	}
 }

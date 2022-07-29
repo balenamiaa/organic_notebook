@@ -1,12 +1,27 @@
 <script>
 	import { getContext } from 'svelte'
-	import { getDocuments, uploadDocument } from '../api.js'
+	import { deleteDocument, uploadDocument } from '../api.js'
 	import { documentsKey } from '../stores'
 	import DocumentView from './DocumentView.svelte'
 
 	const { documents } = getContext(documentsKey)
 	let currentDoc
-	refreshDocuments()
+	let currentPage = -1
+	documents.refresh()
+
+	$: if ($documents.actions.length > 0) {
+		const index = $documents.actions.length - 1
+		const action = $documents.actions[index]
+		switch (action.type) {
+			case 'open-document':
+				{
+					currentDoc = documents.getDocumentById($documents.documents, action.payload.documentId)
+					currentPage = action.payload.pageNumber
+				}
+				break
+		}
+		documents.removeAction(index)
+	}
 
 	async function onSubmit(event) {
 		try {
@@ -14,13 +29,16 @@
 			const response = await uploadDocument(files)
 
 			if (response.status === 200) {
-				refreshDocuments()
+				await documents.refresh()
 			}
 		} catch (err) {}
 	}
-	async function refreshDocuments() {
+	async function onRemove(documentId) {
 		try {
-			$documents = await (await getDocuments()).json()
+			const response = await deleteDocument(documentId)
+			if (response.status === 200) {
+				await documents.refresh()
+			}
 		} catch (err) {}
 	}
 </script>
@@ -43,12 +61,13 @@
 						{doc.title}
 					</span>
 					<button on:click={() => (currentDoc = doc)}>View</button>
+					<button on:click={() => onRemove(doc.id)} class="warning-color">Remove</button>
 				</li>
 			{/each}
 		</ol>
 	{/if}
 	{#if currentDoc}
-		<DocumentView doc={currentDoc} />
+		<DocumentView doc={currentDoc} {currentPage} />
 	{/if}
 </div>
 
