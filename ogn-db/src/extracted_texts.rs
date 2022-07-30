@@ -54,6 +54,58 @@ pub fn get_extracted_text(
         .map_err(|e| str_err!("Error loading extracted text {}", e))
 }
 
+pub fn get_extracted_text_bulk(
+    conn: &mut PgConnection,
+    ids: &[ExtractedTextId],
+) -> Result<Vec<ExtractedText>> {
+    schema::extracted_texts::table
+        .filter(schema::extracted_texts::id.eq_any(ids))
+        .get_results(conn)
+        .map_err(|e| str_err!("Error loading extracted texts {}", e))
+}
+
+pub fn get_extracted_text_ids_for_document(
+    conn: &mut PgConnection,
+    document_id: DocumentId,
+) -> Result<Vec<ExtractedTextId>> {
+    schema::extracted_texts::table
+        .filter(schema::extracted_texts::document_id.eq(document_id))
+        .select(schema::extracted_texts::id)
+        .get_results(conn)
+        .map_err(|e| str_err!("Error loading extracted texts {}", e))
+}
+
+pub fn get_extracted_text_ids_for_document_bulk(
+    conn: &mut PgConnection,
+    document_ids: &[DocumentId],
+) -> Result<Vec<ExtractedTextId>> {
+    schema::extracted_texts::table
+        .filter(schema::extracted_texts::document_id.eq_any(document_ids))
+        .select(schema::extracted_texts::id)
+        .get_results(conn)
+        .map_err(|e| str_err!("Error loading extracted texts {}", e))
+}
+
+pub fn get_extracted_texts_for_document(
+    conn: &mut PgConnection,
+    doc_id: DocumentId,
+) -> Result<Vec<ExtractedText>> {
+    schema::extracted_texts::table
+        .filter(schema::extracted_texts::document_id.eq(doc_id))
+        .get_results(conn)
+        .map_err(|e| str_err!("Error loading extracted texts {}", e))
+}
+
+pub fn get_extracted_texts_for_document_bulk(
+    conn: &mut PgConnection,
+    doc_ids: &[DocumentId],
+) -> Result<Vec<ExtractedText>> {
+    schema::extracted_texts::table
+        .filter(schema::extracted_texts::document_id.eq_any(doc_ids))
+        .get_results(conn)
+        .map_err(|e| str_err!("Error loading extracted texts {}", e))
+}
+
 pub fn get_extracted_texts(
     conn: &mut PgConnection,
     page_index: i64,
@@ -72,6 +124,17 @@ pub fn extracted_text_exists(conn: &mut PgConnection, id: ExtractedTextId) -> Re
 
 pub fn get_num_extracted_texts(conn: &mut PgConnection) -> Result<i64> {
     schema::extracted_texts::table
+        .select(diesel::dsl::count_star())
+        .first(conn)
+        .map_err(|e| str_err!("Error loading extracted texts {}", e))
+}
+
+pub fn get_num_extracted_texts_for_document(
+    conn: &mut PgConnection,
+    id: DocumentId,
+) -> Result<i64> {
+    schema::extracted_texts::table
+        .filter(schema::extracted_texts::document_id.eq(id))
         .select(diesel::dsl::count_star())
         .first(conn)
         .map_err(|e| str_err!("Error loading extracted texts {}", e))

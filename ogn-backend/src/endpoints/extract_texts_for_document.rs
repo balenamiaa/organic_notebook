@@ -36,7 +36,7 @@ pub(crate) async fn extract_texts_for_document_handler(
     Ok(web::Json(extracted_texts))
 }
 
-#[post("/api/extracted_texts/{document_id}")]
+#[post("/api/extracted_texts/document/{document_id}")]
 pub async fn extract_texts_for_document(
     path: web::Path<(DocumentId,)>,
     pool: web::Data<DbPool>,

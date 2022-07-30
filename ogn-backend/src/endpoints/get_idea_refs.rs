@@ -17,10 +17,12 @@ pub(crate) async fn get_idea_refs_handler(
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
     let idea_refs = idea_refs::get_idea_refs(conn.deref_mut(), query.page_num, query.page_size)?;
+    let num_idea_refs = idea_refs::get_num_idea_refs(conn.deref_mut())?;
 
     let idea_refs_json = serde_json::json!({
         "idea_refs": idea_refs,
-        "num_idea_refs_retrieved": idea_refs.len() as i64,
+        "num_retrieved": idea_refs.len() as i64,
+        "num_remaining": num_idea_refs - idea_refs.len() as i64,
     });
 
     Ok(web::Json(idea_refs_json))

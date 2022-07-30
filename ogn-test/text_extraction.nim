@@ -17,17 +17,49 @@ let createdDocument = block:
   doAssert createdDocument.title == DOCUMENT_TITLE
   createdDocument
 
-let extractedText = block:
+let extractedTexts = block:
   let resp = extractText createdDocument
   doAssert resp.status == Http200
-  let extractedText = resp.asJson.asExtractTextResp
-  doAssert extractedText[^1].content == DOCUMENT_LASTPAGE_CONTENT
-  extractedText
+  let extractedTexts = resp.asJson.asExtractTextResp
+  doAssert extractedTexts[^1].content == DOCUMENT_LASTPAGE_CONTENT
+  extractedTexts
+
+block:
+  let resp = getExtractedTextsForDoc createdDocument
+  doAssert resp.status == Http200
+  let extractedTextsNew = resp.asJson.asGetExtractedTextsForDocResp
+  doAssert extractedTextsNew == extractedTexts
+
+block:
+  let resp = getExtractedTextsForDocBulk [createdDocument]
+  doAssert resp.status == Http200
+  let extractedTextsNew = resp.asJson.asGetExtractedTextsForDocBulkResp
+  doAssert extractedTextsNew == extractedTexts
+
+block:
+  let resp = getNumExtractedTextsForDoc createdDocument
+  doAssert resp.status == Http200
+  doAssert resp.asInt == extractedTexts.len
+
+let numExtractedTexts = block:
+  let resp = getNumExtractedTexts()
+  doAssert resp.status == Http200
+  doAssert resp.asInt == extractedTexts.len
+  resp.asInt
+
+block:
+  let
+    pageSize = 10
+    pageNum = ceilDiv(numExtractedTexts, pageSize) - 1
+    resp = getExtractedTexts(pageNum, pageSize)
+  doAssert resp.status == Http200
+  doAssert resp.asJson.asGetExtractedTextsResp.extracted_texts[^1] ==
+      extractedTexts[^1]
 
 block:
   let resp = deleteExtractedText createdDocument
   doAssert resp.status == Http200
-  doAssert resp.asInt == extractedText.len
+  doAssert resp.asInt == extractedTexts.len
 
 block:
   let resp = deleteDocument createdDocument.id
