@@ -40,3 +40,8 @@ pub mod upload_document;
 
 pub mod delete_extracted_texts_for_document;
 pub mod extract_texts_for_document;
+pub mod get_extracted_texts;
+pub mod get_extracted_texts_for_document;
+pub mod get_extracted_texts_for_document_bulk;
+pub mod get_num_extracted_texts;
+pub mod get_num_extracted_texts_for_document;

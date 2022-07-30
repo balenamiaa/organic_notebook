@@ -72,7 +72,7 @@ block:
     pageNum = ceilDiv(numIdeaRefsForIdea, pageSize) - 1
     resp = getIdeaRefsForIdea(createdIdea, pageNum, pageSize)
   doAssert resp.status == Http200
-  let ideaRefs = resp.asJson.asGetIdeaRefsResp.ideaRefs
+  let ideaRefs = resp.asJson.asGetIdeaRefsForIdeaResp.ideaRefs
   doAssert ideaRefs[^1] == createdIdeaRef
 
 block:

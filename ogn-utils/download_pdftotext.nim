@@ -17,11 +17,11 @@ proc downloadArchive(): string =
   path
 
 
-let 
+let
   outputDir = getHomeDir() / ".ogn-tools"
   arch = when defined x86: "bin32" else: "bin64"
   archivePath = downloadArchive()
-  
+
 
 createDir outputDir
 

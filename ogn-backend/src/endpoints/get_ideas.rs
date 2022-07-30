@@ -17,10 +17,12 @@ pub(crate) async fn get_ideas_handler(
 
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
     let ideas = ideas::get_ideas(conn.deref_mut(), query.page_num, query.page_size)?;
+    let num_ideas = ideas::get_num_ideas(conn.deref_mut())?;
 
     let ideas_json = serde_json::json!({
         "ideas": ideas,
-        "num_ideas_retrieved": ideas.len() as i64,
+        "num_retrieved": ideas.len() as i64,
+        "num_remaining": num_ideas - ideas.len() as i64,
     });
 
     Ok(web::Json(ideas_json))

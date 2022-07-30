@@ -40,17 +40,36 @@ type
 
   GetDocumentsResp* = object
     documents*: seq[Document]
-    num* {.key: "num_documents_retrieved".}: int
+    num* {.key: "num_retrieved".}: int
+    rem* {.key: "num_remaining".}: int
 
   GetIdeasResp* = object
     ideas*: seq[Idea]
-    num* {.key: "num_ideas_retrieved".}: int
+    num* {.key: "num_retrieved".}: int
+    rem* {.key: "num_remaining".}: int
 
   GetIdeaRefsResp* = object
     ideaRefs*: seq[IdeaRef]
-    num* {.key: "num_idea_refs_retrieved".}: int
+    num* {.key: "num_retrieved".}: int
+    rem* {.key: "num_remaining".}: int
+
+  GetIdeaRefsForIdeaResp* = object
+    ideaRefs*: seq[IdeaRef]
+    num* {.key: "num_retrieved".}: int
+    rem* {.key: "num_remaining".}: int
+
+  GetExtractedTextsResp* = object
+    extractedTexts*: seq[ExtractedText]
+    num* {.key: "num_retrieved".}: int
+    rem* {.key: "num_remaining".}: int
 
   ExtractTextResp* = seq[ExtractedText]
+  GetExtractedTextsForDocResp* = seq[ExtractedText]
+  GetExtractedTextsForDocBulkResp* = seq[ExtractedText]
+
+
+
+
 
 
 
@@ -100,19 +119,43 @@ proc asUploadDocumentsResp*(json: JsonNode): UploadDocumentResp =
 proc asGetDocumentsResp*(json: JsonNode): GetDocumentsResp =
   for item in json["documents"].items:
     result.documents.add item.asDocument
-  result.num = json["num_documents_retrieved"].getInt
+  result.num = json["num_retrieved"].getInt
+  result.rem = json["num_remaining"].getInt
 
 proc asGetIdeasResp*(json: JsonNode): GetIdeasResp =
   for item in json["ideas"].items:
     result.ideas.add item.asIdea
-  result.num = json["num_ideas_retrieved"].getInt
+  result.num = json["num_retrieved"].getInt
+  result.rem = json["num_remaining"].getInt
 
 proc asGetIdeaRefsResp*(json: JsonNode): GetIdeaRefsResp =
   for item in json["idea_refs"].items:
     result.ideaRefs.add item.asIdeaRef
-  result.num = json["num_idea_refs_retrieved"].getInt
+  result.num = json["num_retrieved"].getInt
+  result.rem = json["num_remaining"].getInt
+
+proc asGetIdeaRefsForIdeaResp*(json: JsonNode): GetIdeaRefsForIdeaResp =
+  for item in json["idea_refs"].items:
+    result.ideaRefs.add item.asIdeaRef
+  result.num = json["num_retrieved"].getInt
+  result.rem = json["num_remaining"].getInt
+
+proc asGetExtractedTextsResp*(json: JsonNode): GetExtractedTextsResp =
+  for item in json["extracted_texts"].items:
+    result.extractedTexts.add item.asExtractedText
+  result.num = json["num_retrieved"].getInt
+  result.rem = json["num_remaining"].getInt
 
 proc asExtractTextResp*(json: JsonNode): ExtractTextResp =
+  for item in json.items:
+    result.add item.asExtractedText()
+
+proc asGetExtractedTextsForDocResp*(json: JsonNode): GetExtractedTextsForDocResp =
+  for item in json.items:
+    result.add item.asExtractedText()
+
+proc asGetExtractedTextsForDocBulkResp*(
+  json: JsonNode): GetExtractedTextsForDocBulkResp =
   for item in json.items:
     result.add item.asExtractedText()
 
@@ -243,17 +286,46 @@ proc getIdeaRefsForIdea*(idea: Idea, pageNum, pageSize: int): Response =
 
 
 proc extractText(documentId: DocumentId): Response =
-  makeReq("/extracted_texts/" & $documentId, "post")
+  makeReq("/extracted_texts/document/" & $documentId, "post")
 
 proc extractText*(document: Document): Response =
   extractText(document.id)
 
 proc deleteExtractedText(documentId: DocumentId): Response =
-  makeReq("/extracted_texts/" & $documentId, "delete")
+  makeReq("/extracted_texts/document/" & $documentId, "delete")
 
 proc deleteExtractedText*(document: Document): Response =
   deleteExtractedText(document.id)
 
+proc getExtractedTexts*(pageNum, pageSize: int): Response =
+  makeReq("/extracted_texts?page_num=" & $pageNum & "&page_size=" & $pageSize, "get")
+
+proc getExtractedTextsForDoc(docId: DocumentId): Response =
+  makeReq("/extracted_texts/document/" & $docId, "get")
+
+proc getExtractedTextsForDoc*(document: Document): Response =
+  getExtractedTextsForDoc(document.id)
+
+proc getExtractedTextsForDocBulk(docIds: openArray[DocumentId]): Response =
+  var body = newStringOfCap(docIds.len * 3)
+  for docId in docIds:
+    body.add $docId
+    body.add ' '
+  body.setLen body.len - 1
+
+  makeReq("/extracted_texts/document/", "get", reqBody = body)
+
+proc getExtractedTextsForDocBulk*(documents: openArray[Document]): Response =
+  getExtractedTextsForDocBulk(documents.mapIt(it.id))
+
+proc getNumExtractedTexts*(): Response =
+  makeReq("/extracted_texts//num", "get")
+
+proc getNumExtractedTextsForDoc(docId: DocumentId): Response =
+  makeReq("/extracted_texts/document/" & $docId & "/num", "get")
+
+proc getNumExtractedTextsForDoc*(document: Document): Response =
+  getNumExtractedTextsForDoc(document.id)
 
 
 export json, httpclient, strutils, math, sequtils
