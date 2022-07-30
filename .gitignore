@@ -14,6 +14,7 @@ package
 package-lock.json
 .idea
 *.dll
+*.exe
 **/.vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json

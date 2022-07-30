@@ -35,8 +35,8 @@ pub mod get_num_idea_refs_for_idea;
 pub mod delete_document;
 pub mod get_document_entry;
 pub mod get_documents;
-pub mod upload_document;
 pub mod get_num_documents;
+pub mod upload_document;
 
 pub mod delete_extracted_texts_for_document;
 pub mod extract_texts_for_document;
