@@ -6,6 +6,8 @@ use anyhow::anyhow;
 use crate::documents::PDFDocument;
 use crate::result::{Error, Result};
 
+pub const PDF2TEXT_PATH: &'static str = std::env!("PDF2TEXT_PATH");
+
 pub trait TextExtractor
 where
     Self: Sized,
@@ -16,12 +18,10 @@ where
 
 impl TextExtractor for PDFDocument {
     fn extract(&self) -> Result<Vec<String>> {
-        let pdf2text_path = std::env::var("PDF2TEXT_PATH")?;
-
         let mut page_num = 1;
         let mut result = vec![];
         loop {
-            let mut command = Command::new(&pdf2text_path);
+            let mut command = Command::new(&PDF2TEXT_PATH);
             command
                 .arg("-layout")
                 .arg("-f")
