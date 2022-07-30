@@ -26,7 +26,7 @@ let
 createDir outputDir
 
 when defined windows:
-  # window tar doesn't support overwriting. will delete in nim code
+  # windows tar doesn't support overwriting. will delete in nim code
   removeDir outputDir / "xpdf-tools-win-4.04"
 
   let status = execShellCmd "tar -zxf " & archivePath & " -C " & outputDir
