@@ -1,0 +1,47 @@
+:root {
+   --spacing: 8px;
+   --border-radius: 4px;
+
+   /* Color */
+   --divider: rgba(0, 0, 0, 0.12);
+   --background-paper: #fff;
+
+   /* Shadow */
+   --elevation-3: 0px 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14),
+      0px 1px 8px 0px rgba(0, 0, 0, 0.12);
+   --elevation-5: 0px 3px 5px -1px rgba(0, 0, 0, 0.2), 0px 5px 8px 0px rgba(0, 0, 0, 0.14),
+      0px 1px 14px 0px rgba(0, 0, 0, 0.12);
+
+   /* Action */
+   --action-active: rgba(0, 0, 0, 0.54);
+   --action-hover: rgba(0, 0, 0, 0.04);
+}
+
+.warning-color {
+   color: red;
+}
+
+* {
+   box-sizing: border-box;
+}
+
+.button-base {
+   padding: var(--spacing);
+   border: none;
+   outline: none;
+   background-color: var(--background-paper);
+   cursor: pointer;
+   display: inline-flex;
+   justify-content: center;
+   align-items: center;
+}
+
+.flex-end {
+   display: flex;
+   justify-content: flex-end;
+}
+
+.flex-column {
+   display: flex;
+   flex-direction: column;
+}
