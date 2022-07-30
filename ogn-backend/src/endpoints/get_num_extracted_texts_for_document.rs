@@ -2,21 +2,22 @@ use ogn_db::extracted_texts;
 
 common_endpoint_imports!();
 
-pub(crate) async fn delete_extracted_texts_for_document_handler(
+pub(crate) async fn get_num_extracted_texts_for_document_handler(
     path: web::Path<(DocumentId,)>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
     let (id,) = path.into_inner();
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
 
-    let count_deleted = extracted_texts::delete_extracted_texts_for_document(conn.deref_mut(), id)?;
-    Ok(web::Json(count_deleted))
+    let num_ideas = extracted_texts::get_num_extracted_texts_for_document(conn.deref_mut(), id)?;
+
+    Ok(web::Json(num_ideas))
 }
 
-#[delete("/api/extracted_texts/document/{document_id}")]
-pub async fn delete_extracted_texts_for_document(
+#[get("/api/extracted_texts/document/{document_id}/num")]
+pub async fn get_num_extracted_texts_for_document(
     path: web::Path<(DocumentId,)>,
     pool: web::Data<DbPool>,
 ) -> actix_web::Result<impl Responder> {
-    delete_extracted_texts_for_document_handler(path, pool).await
+    get_num_extracted_texts_for_document_handler(path, pool).await
 }

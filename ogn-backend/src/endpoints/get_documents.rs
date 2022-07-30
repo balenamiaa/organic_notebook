@@ -19,10 +19,12 @@ pub(crate) async fn get_documents_handler(
     let mut conn = pool.get().map_err(|x| ErrorInternalServerError(x))?;
 
     let documents = documents::get_documents(conn.deref_mut(), query.page_num, query.page_size)?;
+    let num_documents = documents::get_num_documents(conn.deref_mut())?;
 
     let documents_json = serde_json::json!({
         "documents": documents,
-        "num_documents_retrieved": documents.len() as i64,
+        "num_retrieved": documents.len() as i64,
+        "num_remaining": num_documents - documents.len() as i64,
     });
 
     Ok(web::Json(documents_json))

@@ -5,7 +5,7 @@ use std::{
 
 fn main() {
     println!("cargo:rerun-if-env-changed=RERUNBS");
-    
+
     let mut pdftotext_path = String::new();
     Command::new("nim")
         .arg("r")
