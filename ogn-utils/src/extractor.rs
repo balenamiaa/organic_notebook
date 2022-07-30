@@ -6,6 +6,8 @@ use anyhow::anyhow;
 use crate::documents::PDFDocument;
 use crate::result::{Error, Result};
 
+pub const PDF2TEXT_PATH: &'static str = std::env!("PDF2TEXT_PATH");
+
 pub trait TextExtractor
 where
     Self: Sized,
@@ -16,12 +18,10 @@ where
 
 impl TextExtractor for PDFDocument {
     fn extract(&self) -> Result<Vec<String>> {
-        let pdf2text_path = std::env::var("PDF2TEXT_PATH")?;
-
         let mut page_num = 1;
         let mut result = vec![];
         loop {
-            let mut command = Command::new(&pdf2text_path);
+            let mut command = Command::new(&PDF2TEXT_PATH);
             command
                 .arg("-layout")
                 .arg("-f")
@@ -30,16 +30,21 @@ impl TextExtractor for PDFDocument {
                 .arg(page_num.to_string())
                 .arg(&self.path)
                 .arg("-")
-                .stdout(Stdio::piped());
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped());
             let output = command.spawn()?.wait_with_output()?;
 
             let status = output.status.code().unwrap_or(0);
 
             if status != 0 {
-                return Err(Error::new(anyhow!(
-                    "pdf2text failed with status {}",
-                    status
-                )));
+                if String::from_utf8_lossy(&output.stderr).contains("page range") {
+                    break;
+                } else {
+                    return Err(Error::new(anyhow!(
+                        "pdf2text failed with status {}",
+                        status
+                    )));
+                }
             } else {
                 if output.stdout.is_empty() {
                     break;

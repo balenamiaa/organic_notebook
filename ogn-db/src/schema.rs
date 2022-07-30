@@ -38,9 +38,4 @@ diesel::joinable!(extracted_texts -> documents (document_id));
 diesel::joinable!(idea_refs -> documents (document_id));
 diesel::joinable!(idea_refs -> ideas (idea_ref));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    documents,
-    extracted_texts,
-    idea_refs,
-    ideas,
-);
+diesel::allow_tables_to_appear_in_same_query!(documents, extracted_texts, idea_refs, ideas,);

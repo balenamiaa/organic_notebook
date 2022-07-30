@@ -26,7 +26,7 @@ pub(crate) async fn extract_texts_for_document_handler(
         .enumerate()
         .map(|(page_number, _)| DocumentPage {
             document_id: id,
-            page_number: Some(page_number as i32),
+            page_number: Some(page_number as i32 + 1),
         })
         .collect::<Vec<_>>();
 

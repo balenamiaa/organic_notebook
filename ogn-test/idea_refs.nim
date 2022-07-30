@@ -1,100 +1,93 @@
 import ./common
 
-let createIdeaResp = makeReq("/ideas", "post", "status,json") do:
-  $ %*{"label": "__test_idea_10105"}
-do:
-  {"content-type": "application/json"}.newHttpHeaders()
-
-doAssert createIdeaResp.status == Http200
 
 
-let createDocResp = makeReq("/documents", "post", "status,json", files = block:
-  var files = newMultipartData()
-  files.addFiles({"test_document": "ogn-test/Anas's Grimoire of Red Magic.pdf"})
-)
+const DOCUMENT_TITLE = "Anas's Grimoire of Red Magic"
+const IDEA_LABEL = "__test_idea_10105"
+const IDEA_REF_TEXT = "test idea ref 0"
 
-doAssert createDocResp.status == Http200
-
-let createdDocument = createDocResp.json.items.toSeq()[^1]
-
-let createIdeaRefResp = makeReq("/idea_refs", "post", "status,json") do:
-  $ %*
-    {
-      "doc_page":
-      {
-        "document_id": createdDocument["id"].str,
-        "page_number": 6
-      },
-      "idea_ref": createIdeaResp.json["id"].str,
-      "idea_ref_text": "test idea ref 0"
-    }
-do:
-  {"content-type": "application/json"}.newHttpHeaders()
-
-doAssert createIdeaRefResp.status == Http200
-doAssert createIdeaRefResp.json["idea_ref"] == createIdeaResp.json["id"]
-doAssert createIdeaRefResp.json["idea_ref_text"].str == "test idea ref 0"
-doAssert createIdeaRefResp.json["doc_page"]["document_id"] == createdDocument["id"]
-doAssert createIdeaRefResp.json["doc_page"]["page_number"].getInt == 6
-
-let getResp = makeReq("/idea_refs/" & createIdeaRefResp.json["id"].str, "get", "status,json")
-
-doAssert getResp.status == Http200
-doAssert getResp == createIdeaRefResp
-
-let getNumResp = makeReq("/idea_refs//num", "get", "status,string")
-
-doAssert getNumResp.status == Http200
-doAssert not(getNumResp.val.parseInt == 0)
-
-let
-  pageSize = 10
-  pageNum = ceilDiv(getNumResp.val.parseInt, pageSize) - 1
-
-let ideaRefsResp = makeReq("/idea_refs?page_num=" & $pageNum & "&page_size=" &
-    $pageSize, "get", "status,json")
-
-doAssert ideaRefsResp.status == Http200
-doAssert ideaRefsResp.json["idea_refs"].items.toSeq[^1] ==
-    createIdeaRefResp.json
-
-let ideaRefForIdea = block:
-  let getNumIdeaRefsForIdeaResp = makeReq("/idea_refs_for_idea/" & createIdeaResp.json["id"].str & "/num", "get", "status,string")
-
-  doAssert getNumIdeaRefsForIdeaResp.status == Http200
-  doAssert not(getNumIdeaRefsForIdeaResp.val.parseInt == 0)
+let createdDocument = block:
+  let resp = createDocument "ogn-test/Anas's Grimoire of Red Magic.pdf"
+  doAssert resp.status == Http200
 
   let
+    createdDocuments = resp.asJson.asUploadDocumentsResp
+    createdDocument = createdDocuments[^1]
+  createdDocument
+
+let createdIdea = block:
+  let resp = createIdea IDEA_LABEL
+  doAssert resp.status == Http200
+  resp.asJson.asIdea
+
+
+let createdIdeaRef = block:
+  let resp = createIdeaRef(
+    docPage = DocumentPage(
+      docId: createdDocument.id,
+      pageNum: 6
+    ),
+    idea = createdIdea,
+    text = IDEA_REF_TEXT
+  )
+  doAssert resp.status == Http200
+
+  let createdIdeaRef = resp.asJson.asIdeaRef
+
+  doAssert createdIdeaRef.refId == createdIdea.id
+  doAssert createdIdeaRef.ideaRefText == IDEA_REF_TEXT
+  doAssert createdIdeaRef.docPage == DocumentPage(
+    docId: createdDocument.id,
+    pageNum: 6
+  )
+  createdIdeaRef
+
+block:
+  let resp = getIdeaRef createdIdeaRef.id
+  doAssert resp.status == Http200
+  doAssert resp.asJson.asIdeaRef == createdIdeaRef
+
+let numIdeaRefs = block:
+  let resp = getNumIdeaRefs()
+  doAssert resp.status == Http200
+  doAssert not(resp.asInt() == 0)
+  resp.asInt()
+
+block:
+  let
     pageSize = 10
-    pageNum = ceilDiv(getNumResp.val.parseInt, pageSize) - 1
+    pageNum = ceilDiv(numIdeaRefs, pageSize) - 1
+    resp = getIdeaRefs(pageNum, pageSize)
+  doAssert resp.status == Http200
+  doAssert resp.asJson.asGetIdeaRefsResp.ideaRefs[^1] == createdIdeaRef
 
-  let getIdeaRefsForIdeaResp = makeReq("/idea_refs_for_idea/" & createIdeaResp.json["id"].str & "?page_num=" & $pageNum & "&page_size=" & $pageSize, "get", "status,json")
-  
-  doAssert getIdeaRefsForIdeaResp.status == Http200
+let numIdeaRefsForIdea = block:
+  let resp = getNumIdeaRefsForIdea createdIdea
+  doAssert resp.status == Http200
+  resp.asInt()
 
-  getIdeaRefsForIdeaResp.json["idea_refs"].items.toSeq()[^1]
+block:
+  let
+    pageSize = 10
+    pageNum = ceilDiv(numIdeaRefsForIdea, pageSize) - 1
+    resp = getIdeaRefsForIdea(createdIdea, pageNum, pageSize)
+  doAssert resp.status == Http200
+  let ideaRefs = resp.asJson.asGetIdeaRefsResp.ideaRefs
+  doAssert ideaRefs[^1] == createdIdeaRef
 
+block:
+  let resp = deleteIdeaRef createdIdeaRef.id
+  doAssert resp.status == Http200
+  doAssert resp.asInt() == 1
 
+block:
+  let resp = getIdeaRef createdIdeaRef.id
+  doAssert not(resp.status == Http200)
 
-doAssert ideaRefForIdea == createIdeaRefResp.json
-doAssert ideaRefForIdea == createIdeaRefResp.json
+block:
+  let resp = deleteIdea createdIdea.id
+  doAssert resp.status == Http200
 
-
-let deleteIdeaRefResp = makeReq("/idea_refs/" & createIdeaRefResp.json[
-    "id"].str, "delete", "status,string")
-
-doAssert deleteIdeaRefResp.status == Http200
-doAssert deleteIdeaRefResp.val.parseInt == 1 # num of deleted ideas
-
-let attemptGetResp = makeReq("/idea_refs/" & createIdeaRefResp.json["id"].str,
-    "get", "status") # attempt to get deleted idea
-
-doAssert not(attemptGetResp == Http200)
-
-let deleteIdeaResp = makeReq("/ideas/" & createIdeaResp.json["id"].str,
-    "delete", "status")
-doAssert deleteIdeaResp == Http200
-
-let deleteDocumentResp = makeReq("/documents/" & createdDocument["id"].str,
-    "delete", "status")
-doAssert deleteDocumentResp == Http200
+block:
+  let resp = deleteDocument createdDocument.id
+  doAssert resp.status == Http200

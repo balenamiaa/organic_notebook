@@ -17,7 +17,6 @@ pub(crate) async fn upload_document_handler(
 ) -> actix_web::Result<impl Responder> {
     let mut created_documents = vec![];
     while let Some(Ok(mut item)) = files.next().await {
-
         let _mime = item.content_type();
         let mut bytes = vec![];
         while let Some(Ok(bytes_ty)) = item.next().await {
