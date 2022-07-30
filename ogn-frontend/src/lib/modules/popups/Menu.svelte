@@ -12,7 +12,7 @@
 		padding: 6px;
 		border-radius: var(--border-radius);
 		width: fit-content;
-		z-index: 10000;
+		z-index: var(--tooltip-zindex);
 		box-shadow: var(--elevation-3);
 	}
 </style>
