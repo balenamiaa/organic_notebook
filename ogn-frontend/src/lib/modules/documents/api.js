@@ -24,6 +24,10 @@ export function deleteDocument(documentId) {
 	return deleteRequest(`/documents/${documentId}`)
 }
 
+export function extractDocumentText(documentId) {
+	return postRequest(`/extracted_texts/${documentId}`)
+}
+
 export function deleteDocumentExtractedText(documentId) {
 	return deleteRequest(`/extracted_texts/${documentId}`)
 }

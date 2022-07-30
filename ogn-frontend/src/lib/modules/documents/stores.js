@@ -11,7 +11,7 @@ export function createDocuments() {
 		set,
 		update,
 		refresh: async () => {
-			const documents = await (await getDocuments()).json()
+			const documents = await getDocuments().then(response => response.json())
 			update((values) => {
 				values.documents = documents.documents
 				return values
