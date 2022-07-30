@@ -5,7 +5,7 @@
 
 	export let name = ''
 	export let placeholder = 'Enter text here...'
-	export let availableOptions = ['All about AJAM', 'All about BAAA', 'All about RRAA']
+	export let options = ['All about AJAM', 'All about BAAA', 'All about RRAA']
 	export let maxWidth = '260px'
 
 	const dispatch = createEventDispatcher()
@@ -29,7 +29,7 @@
 			bind:this={input}
 			on:focus={() => (showAutocompleteList = true)}
 			on:keydown={(event) => {
-				const option = availableOptions.find((op) => op.toLowerCase() === input.value.toLowerCase())
+				const option = options.find((op) => op.toLowerCase() === input.value.toLowerCase())
 				if (event.key === 'Enter' && option) {
 					dispatch('optionSelect', { option })
 				}
@@ -37,9 +37,9 @@
 			bind:value={inputValue}
 		/>
 	</div>
-	{#if showAutocompleteList && availableOptions?.length > 0}
+	{#if showAutocompleteList && options?.length > 0}
 		<div class="autocomplete-root">
-			{#each availableOptions as option}
+			{#each options as option}
 				<div
 					on:click={() => {
 						dispatch('optionSelect', { option })
