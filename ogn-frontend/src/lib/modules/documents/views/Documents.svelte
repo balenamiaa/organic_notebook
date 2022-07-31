@@ -1,13 +1,20 @@
 <script>
 	import { getContext } from 'svelte'
-	import { deleteDocument, uploadDocument } from '../api.js'
+	import {
+		deleteDocument,
+		deleteDocumentExtractedText,
+		extractDocumentText,
+		uploadDocument,
+	} from '../api.js'
 	import { documentsKey } from '../stores'
+	import DocumentsSearch from './DocumentsSearch.svelte'
 	import DocumentView from './DocumentView.svelte'
 
 	const { documents } = getContext(documentsKey)
 	let currentDoc
 	let currentPage = -1
 	documents.refresh()
+	documents.refreshExtractedTexts()
 
 	$: if ($documents.actions.length > 0) {
 		const index = $documents.actions.length - 1
@@ -31,20 +38,33 @@
 			if (response.status === 200) {
 				await documents.refresh()
 			}
+
+			const json = await response.json()
+
+			if (json.length > 0) {
+				await Promise.all(json.map((doc) => extractDocumentText(doc.id)))
+			}
 		} catch (err) {}
 	}
 	async function onRemove(documentId) {
 		try {
+			await deleteDocumentExtractedText(documentId)
 			const response = await deleteDocument(documentId)
 			if (response.status === 200) {
 				await documents.refresh()
 			}
 		} catch (err) {}
 	}
+	async function onExtractText(documentId) {
+		try {
+			extractDocumentText(documentId)
+		} catch (err) {}
+	}
 </script>
 
 <div>
 	<h2>Documents</h2>
+	<DocumentsSearch />
 	<form on:submit|preventDefault={onSubmit}>
 		Select a document
 		<input type="file" name="files" multiple />
@@ -61,6 +81,7 @@
 						{doc.title}
 					</span>
 					<button on:click={() => (currentDoc = doc)}>View</button>
+					<button on:click={() => onExtractText(doc.id)}>Extract text</button>
 					<button on:click={() => onRemove(doc.id)} class="warning-color">Remove</button>
 				</li>
 			{/each}

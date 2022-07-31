@@ -15,6 +15,7 @@
 	export let doc
 
 	export let currentPage = -1
+	export let onlyShowCurrentPage = false
 
 	const { ideas } = getContext(ideasKey)
 
@@ -98,9 +99,13 @@
 		on:selectionChange={onSelectionChange}
 	>
 		<div>
-			{#each Array(numPages) as _, i}
-				<PdfPage pageNumber={i + 1} />
-			{/each}
+			{#if onlyShowCurrentPage}
+				<PdfPage pageNumber={currentPage} />
+			{:else}
+				{#each Array(numPages) as _, i}
+					<PdfPage pageNumber={i + 1} />
+				{/each}
+			{/if}
 		</div>
 	</PdfDocument>
 {:else}

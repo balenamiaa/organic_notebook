@@ -11,7 +11,7 @@ export function createIdeas() {
 		set,
 		update,
 		refresh: async () => {
-			const ideas = await (await getIdeas()).json()
+			const ideas = await getIdeas().then(response => response.json())
 			update((values) => {
 				values.ideas = ideas.ideas
 				return values
