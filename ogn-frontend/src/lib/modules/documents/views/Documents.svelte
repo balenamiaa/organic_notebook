@@ -7,12 +7,14 @@
 		uploadDocument,
 	} from '../api.js'
 	import { documentsKey } from '../stores'
+	import DocumentsSearch from './DocumentsSearch.svelte'
 	import DocumentView from './DocumentView.svelte'
 
 	const { documents } = getContext(documentsKey)
 	let currentDoc
 	let currentPage = -1
 	documents.refresh()
+	documents.refreshExtractedTexts()
 
 	$: if ($documents.actions.length > 0) {
 		const index = $documents.actions.length - 1
@@ -62,6 +64,7 @@
 
 <div>
 	<h2>Documents</h2>
+	<DocumentsSearch />
 	<form on:submit|preventDefault={onSubmit}>
 		Select a document
 		<input type="file" name="files" multiple />

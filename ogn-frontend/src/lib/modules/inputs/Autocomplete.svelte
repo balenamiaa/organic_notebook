@@ -7,6 +7,9 @@
 	export let placeholder = 'Enter text here...'
 	export let options = ['All about AJAM', 'All about BAAA', 'All about RRAA']
 	export let maxWidth = '260px'
+	export let showNoItem = true
+	export let getText = (value, inputValue) => value
+	export let autocomplete = true
 
 	const dispatch = createEventDispatcher()
 	let showAutocompleteList = false
@@ -29,29 +32,49 @@
 			bind:this={input}
 			on:focus={() => (showAutocompleteList = true)}
 			on:keydown={(event) => {
-				const option = options.find((op) => op.toLowerCase() === input.value.toLowerCase())
-				if (event.key === 'Enter' && option) {
-					dispatch('optionSelect', { option })
+				if (!autocomplete) true
+				if (event.key === 'Enter') {
+					const option = options.find(
+						(op) => getText(op, inputValue).toLowerCase() === input.value.toLowerCase(),
+					)
+					if (option) dispatch('optionSelect', { option })
 				}
 			}}
+			on:input
 			bind:value={inputValue}
 		/>
 	</div>
-	{#if showAutocompleteList && options?.length > 0}
-		<div class="autocomplete-root">
-			{#each options as option}
+	{#if autocomplete}
+		{#if showAutocompleteList && options?.length > 0}
+			<div class="autocomplete-root">
+				{#each options as option}
+					<div
+						on:click={() => {
+							dispatch('optionSelect', { option })
+							showAutocompleteList = false
+						}}
+						class="autocomplete-item pointer hover-bg selected-bg"
+					>
+						<slot name="item" {option} {inputValue}>
+							{getText(option, inputValue)}
+						</slot>
+					</div>
+					<Divider />
+				{/each}
+			</div>
+		{:else if showNoItem && showAutocompleteList}
+			<div class="autocomplete-root">
 				<div
 					on:click={() => {
-						dispatch('optionSelect', { option })
 						showAutocompleteList = false
 					}}
 					class="autocomplete-item pointer hover-bg selected-bg"
 				>
-					{option}
+					<slot name="noItem" {inputValue}>No items</slot>
 				</div>
 				<Divider />
-			{/each}
-		</div>
+			</div>
+		{/if}
 	{/if}
 </div>
 
