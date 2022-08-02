@@ -28,12 +28,6 @@
 	let documentFile
 	let moreOption = false
 
-	$: if (documentFile && currentPage != -1) {
-		tick().then(() => {
-			moveToPage(doc.id, currentPage)
-		})
-	}
-
 	function onSelectionEnd(event) {
 		menuPos = event.detail.posInScreen
 		selectionText = event.detail.selectionText
@@ -78,13 +72,6 @@
 		}
 		showSelectionMenu = false
 	}
-	async function moveToPage(documentId, page) {
-		if (doc.filetype === 'pdf') {
-			document
-				.querySelector(`[data-document-id="${documentId}"] [data-page-number="${page}"]`)
-				.scrollIntoView()
-		}
-	}
 </script>
 
 {#if doc.filetype === 'pdf'}
@@ -100,10 +87,10 @@
 	>
 		<div>
 			{#if onlyShowCurrentPage}
-				<PdfPage pageNumber={currentPage} {searchTerm}/>
+				<PdfPage pageNumber={currentPage} {searchTerm} />
 			{:else}
 				{#each Array(numPages) as _, i}
-					<PdfPage pageNumber={i + 1} {searchTerm}/>
+					<PdfPage pageNumber={i + 1} {searchTerm} focusPage={currentPage === i + 1} />
 				{/each}
 			{/if}
 		</div>

@@ -9,6 +9,7 @@
 
 	export let pageNumber
 	export let searchTerm
+	export let focusPage = false
 
 	const pdf = getContext(PdfKey)
 	let page
@@ -17,6 +18,7 @@
 	let textContainer
 	let pageRenderTask
 	let textRenderTask
+	let rootEl
 
 	const markOptions = {
 		className: 'highlight-pdf',
@@ -40,6 +42,12 @@
 			if (searchTerm.trim().length > 0) {
 				instance.markRegExp(new RegExp(escapeRegExp(searchTerm), 'gmi'), markOptions)
 			}
+		})
+	}
+
+	$: if (focusPage && pageRenderTask) {
+		pageRenderTask.promise.then(() => {
+			rootEl.scrollIntoView()
 		})
 	}
 
@@ -86,7 +94,7 @@
 	}
 </script>
 
-<div id="root" data-page-number={pageNumber}>
+<div bind:this={rootEl} id="root" data-page-number={pageNumber}>
 	<canvas bind:this={canvas} />
 
 	<div bind:this={textContainer} class="textLayer" />
