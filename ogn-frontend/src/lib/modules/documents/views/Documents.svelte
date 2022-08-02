@@ -13,6 +13,8 @@
 	const { documents } = getContext(documentsKey)
 	let currentDoc
 	let currentPage = -1
+	let searchTerm = ''
+
 	documents.refresh()
 	documents.refreshExtractedTexts()
 
@@ -24,6 +26,7 @@
 				{
 					currentDoc = documents.getDocumentById($documents.documents, action.payload.documentId)
 					currentPage = action.payload.pageNumber
+					searchTerm = action.payload.searchTerm || ''
 				}
 				break
 		}
@@ -88,7 +91,7 @@
 		</ol>
 	{/if}
 	{#if currentDoc}
-		<DocumentView doc={currentDoc} {currentPage} />
+		<DocumentView doc={currentDoc} {currentPage} {searchTerm} />
 	{/if}
 </div>
 

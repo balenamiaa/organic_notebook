@@ -13,8 +13,8 @@
 	import { getContext, tick } from 'svelte'
 
 	export let doc
-
 	export let currentPage = -1
+	export let searchTerm = ''
 	export let onlyShowCurrentPage = false
 
 	const { ideas } = getContext(ideasKey)
@@ -100,10 +100,10 @@
 	>
 		<div>
 			{#if onlyShowCurrentPage}
-				<PdfPage pageNumber={currentPage} />
+				<PdfPage pageNumber={currentPage} {searchTerm}/>
 			{:else}
 				{#each Array(numPages) as _, i}
-					<PdfPage pageNumber={i + 1} />
+					<PdfPage pageNumber={i + 1} {searchTerm}/>
 				{/each}
 			{/if}
 		</div>

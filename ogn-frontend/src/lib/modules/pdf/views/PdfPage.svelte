@@ -4,8 +4,12 @@
 	import { getContext, tick } from 'svelte'
 	import { PdfKey } from '../stores'
 	import * as pdfjs from 'pdfjs-dist'
+	import Mark from 'mark.js'
+	import { escapeRegExp } from '$lib/utils/utils'
 
 	export let pageNumber
+	export let searchTerm
+
 	const pdf = getContext(PdfKey)
 	let page
 	let viewport
@@ -14,12 +18,28 @@
 	let pageRenderTask
 	let textRenderTask
 
+	const markOptions = {
+		className: 'highlight-pdf',
+		element: 'span',
+		acrossElements: true,
+	}
+
 	$: if ($pdf) {
 		refreshPage()
 	}
 	$: if (page && viewport) {
 		tick().then(() => {
 			renderPage(page, viewport).then(() => renderText(page, viewport))
+		})
+	}
+
+	$: if (textRenderTask && searchTerm) {
+		textRenderTask.promise.then(() => {
+			const instance = new Mark(textContainer)
+			instance.unmark(markOptions)
+			if (searchTerm.trim().length > 0) {
+				instance.markRegExp(new RegExp(escapeRegExp(searchTerm), 'gmi'), markOptions)
+			}
 		})
 	}
 

@@ -23,6 +23,7 @@
   },
   "type": "module",
   "dependencies": {
+    "mark.js": "^8.11.1",
     "pdfjs-dist": "^2.14.305"
   }
 }

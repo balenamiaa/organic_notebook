@@ -1,6 +1,6 @@
 import { contentType, deleteRequest, getRequest, postRequest } from '$lib/utils/api.js'
 
-export function getIdeas(page = 0, pageSize = 10) {
+export function getIdeas(page = 0, pageSize = 100) {
 	return getRequest(`/ideas?page_num=${page}&page_size=${pageSize}`)
 }
 

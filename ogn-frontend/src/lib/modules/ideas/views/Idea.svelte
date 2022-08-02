@@ -63,12 +63,13 @@
 			}
 		} catch (err) {}
 	}
-	function viewDocument(doc) {
+	function viewDocument(doc, searchTerm) {
 		documents.pushAction({
 			type: 'open-document',
 			payload: {
-				pageNumber: doc.page_number,
 				documentId: doc.document_id,
+				pageNumber: doc.page_number,
+				searchTerm,
 			},
 		})
 	}
@@ -107,7 +108,9 @@
 								ideaRef.doc_page.document_id,
 							).title} page: {ideaRef.doc_page.page_number}
 						</span>
-						<button on:click={() => viewDocument(ideaRef.doc_page)}>View</button>
+						<button on:click={() => viewDocument(ideaRef.doc_page, ideaRef.idea_ref_text)}
+							>View</button
+						>
 						<button on:click={() => onRemoveIdeaRef(ideaRef)} class="warning-color">Remove</button>
 					</li>
 				{/each}

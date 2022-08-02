@@ -75,3 +75,7 @@
 .selected-bg:active {
 	background-color: var(--action-selected);
 }
+
+.highlight-pdf {
+   background-color: yellow !important;
+}

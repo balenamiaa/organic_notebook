@@ -5,6 +5,7 @@
 	import DocumentView from './DocumentView.svelte'
 
 	let options = []
+	let searchTerm = ''
 
 	const { documents } = getContext(documentsKey)
 	const searchOptions = {
@@ -21,6 +22,7 @@
 	}
 
 	function onInput(term) {
+		searchTerm = term
 		if (!term) {
 			options = []
 			return
@@ -62,6 +64,7 @@
 			payload: {
 				pageNumber: extractedText.doc_page.page_number,
 				documentId: extractedText.doc_page.document_id,
+				searchTerm,
 			},
 		})
 	}
@@ -102,9 +105,9 @@
 	on:input={(event) => onInput(event.target.value)}
 >
 	<svelte:fragment slot="item" let:option let:inputValue>
-		Document: <strong
-			>{documents.getDocumentById($documents.documents, option.doc_page.document_id).title}</strong
-		>
+		Document: <strong>
+			{documents.getDocumentById($documents.documents, option.doc_page.document_id).title}
+		</strong>
 		Page: <strong>{option.doc_page.page_number}</strong>
 		<br />
 
@@ -127,6 +130,7 @@
 			doc={documents.getDocumentById($documents.documents, extractedText.doc_page.document_id)}
 			currentPage={extractedText.doc_page.page_number}
 			onlyShowCurrentPage={true}
+			{searchTerm}
 		/>
 	{/each}
 {/if}
