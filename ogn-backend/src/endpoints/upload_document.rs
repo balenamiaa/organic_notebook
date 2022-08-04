@@ -2,7 +2,9 @@ use std::env::temp_dir;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use std::sync::Arc;
 
+use futures_util::lock::Mutex;
 use ogn_db::documents;
 use ogn_utils::conversion::ToPdf;
 use ogn_utils::documents::NonPDFDocument;
@@ -13,7 +15,7 @@ common_endpoint_imports!();
 pub(crate) async fn upload_document_handler(
     mut files: Multipart,
     pool: web::Data<DbPool>,
-    onedrive: web::Data<Onedrive>,
+    onedrive_ref: web::Data<Arc<Mutex<Onedrive>>>,
 ) -> actix_web::Result<impl Responder> {
     let mut created_documents = vec![];
     while let Some(Ok(mut item)) = files.next().await {
@@ -49,6 +51,8 @@ pub(crate) async fn upload_document_handler(
             return Err(ErrorBadRequest("bad request"));
         }
 
+        let onedrive = onedrive_ref.get_ref().clone();
+
         match ext.as_ref() {
             "pdf" => {
                 let document_filepath = Path::new(DOCUMENT_ROOTDIR).join(format!("{}.pdf", id.0));
@@ -62,9 +66,10 @@ pub(crate) async fn upload_document_handler(
                 let mut temp_file = File::create(&temp_filepath)?;
                 temp_file.write_all(&bytes)?;
 
+                let mut guard = onedrive.lock().await;
                 let temp_document = NonPDFDocument::new(temp_filepath);
                 temp_document
-                    .convert_to_pdf(onedrive.get_ref(), document_filepath.as_path())
+                    .convert_to_pdf(&mut guard, document_filepath.as_path())
                     .await
                     .map_err(|_| ErrorInternalServerError("Couldn't convert document to pdf"))?;
             }
@@ -85,7 +90,7 @@ pub(crate) async fn upload_document_handler(
 pub async fn upload_document(
     files: Multipart,
     pool: web::Data<DbPool>,
-    onedrive: web::Data<Onedrive>,
+    onedrive_ref: web::Data<Arc<Mutex<Onedrive>>>,
 ) -> actix_web::Result<impl Responder> {
-    upload_document_handler(files, pool, onedrive).await
+    upload_document_handler(files, pool, onedrive_ref).await
 }

@@ -1,6 +1,7 @@
 #![feature(int_roundings)]
 
 use std::path::Path;
+use std::sync::Arc;
 
 use actix_cors::Cors;
 use actix_web::web::Data;
@@ -10,6 +11,7 @@ use diesel::{r2d2, PgConnection};
 use dotenv_codegen::dotenv;
 
 use autoservice::auto_service;
+use futures_util::lock::Mutex;
 use ogn_utils::onedrive::Onedrive;
 
 mod endpoints;
@@ -32,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let manager = ConnectionManager::<PgConnection>::new(dotenv!("DATABASE_URL"));
     let pool: DbPool = r2d2::Pool::builder().build(manager)?;
 
-    let onedrive = Onedrive::new(dotenv!("ONEDRIVE_ACCESS_TOKEN")); // TODO: don't hardcode access token.
+    let onedrive = Arc::new(Mutex::new(Onedrive::new())); // TODO: don't hardcode access token.
 
     HttpServer::new(move || {
         let cors = Cors::default()
