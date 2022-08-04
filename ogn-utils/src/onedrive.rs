@@ -1,7 +1,10 @@
 use std::ops::Range;
 use std::path::Path;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use anyhow::anyhow;
+use dotenv_codegen::dotenv;
 use http::{Request, Response, StatusCode};
 use hyper::body::Buf;
 use hyper::client::HttpConnector;
@@ -116,18 +119,61 @@ pub struct File {}
 
 #[derive(Default, Debug, Clone)]
 pub struct Onedrive {
-    client: Client<HttpConnector>,
+    client: Arc<Client<HttpConnector>>,
     access_token: String,
+    client_id: String,
+    client_secret: String,
+    refresh_token: String,
+    redirect_uri: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefreshForm<'a> {
+    pub client_id: &'a str,
+    pub client_secret: &'a str,
+    pub refresh_token: &'a str,
+    pub redirect_uri: &'a str,
+    pub grant_type: &'a str,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefreshTokenResponse {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub scope: String,
+    pub token_type: String,
+    pub expires_in: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Link {
+    UploadUrl(UploadUrl),
+    Endpoint(String),
+}
+
+impl Link {
+    pub fn get(self) -> String {
+        const REQUEST_BASEURL: &'static str = "https://graph.microsoft.com/v1.0/";
+
+        match self {
+            Link::UploadUrl(upload_url) => upload_url.0,
+            Link::Endpoint(endpoint) => format!("{}{}", REQUEST_BASEURL, endpoint),
+        }
+    }
 }
 
 impl Onedrive {
-    const _SITE_NAME: &'static str = "organic_notebook"; // TODO: can't seem to create a site from the API
+    const _SITE_NAME: &'static str = "organic_notebook";
     const DRIVE_NAME_FOR_CONVERSION: &'static str = "document_conversion";
 
-    pub fn new(token: &str) -> Self {
+    pub fn new() -> Self {
         Self {
-            client: Client::builder().build_http(),
-            access_token: token.to_string(),
+            client: Arc::new(Client::builder().build_http()),
+            access_token: dotenv!("ONEDRIVE_ACCESS_TOKEN").to_owned(),
+            client_id: dotenv!("ONEDRIVE_CLIENT_ID").to_owned(),
+            client_secret: dotenv!("ONEDRIVE_CLIENT_SECRET").to_owned(),
+            refresh_token: dotenv!("ONEDRIVE_REFRESH_TOKEN").to_owned(),
+            redirect_uri: dotenv!("ONEDRIVE_REDIRECT_URI").to_owned(),
         }
     }
 
@@ -143,21 +189,103 @@ impl Onedrive {
         return |response: &Response<Body>| Self::__default_cb(response, statuses);
     }
 
-    pub async fn request_raw<'de>(&self, method: &str, endpoint: &str) -> Result<Response<Body>> {
-        const REQUEST_BASEURL: &'static str = "https://graph.microsoft.com/v1.0/";
-        let request = Request::builder()
-            .uri(format!("{}{}", REQUEST_BASEURL, endpoint))
-            .header("Authorization", format!("Bearer {}", self.access_token))
-            .method(method)
-            .body(Body::empty())?;
+    pub async fn refresh_token(&mut self) -> Result<RefreshTokenResponse> {
+        let form = RefreshForm {
+            client_id: self.client_id.as_str(),
+            client_secret: self.client_secret.as_str(),
+            refresh_token: self.refresh_token.as_str(),
+            redirect_uri: self.redirect_uri.as_str(),
+            grant_type: "refresh_token",
+        };
 
-        let response = self.client.request(request).await?;
+        let req = Request::builder()
+            .uri("https://login.microsoftonline.com/common/oauth2/v2.0/token")
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(Body::from(serde_urlencoded::to_string(&form).map_err(
+                |e| Error::new(anyhow!("Failed to serialize refresh token form: {}", e)),
+            )?))?;
+
+        let response = self.client.request(req).await?;
+        let mut body_reader = hyper::body::to_bytes(response.into_body()).await?.reader();
+        let response: RefreshTokenResponse =
+            serde_json::from_reader(&mut body_reader).map_err(|e| {
+                Error::new(anyhow!(
+                    "Failed to deserialize refresh token response: {}",
+                    e
+                ))
+            })?;
+
+        Ok(response)
+    }
+
+    pub async fn request_raw<'de, T: Into<Body> + Clone>(
+        &mut self,
+        method: &str,
+        link: Link,
+        is_json: bool,
+        body: Option<T>,
+        headers: Option<&[(&str, &str)]>,
+    ) -> Result<Response<Body>> {
+        let mut builder = Request::builder()
+            .uri(link.clone().get())
+            .header("Authorization", format!("Bearer {}", self.access_token))
+            .method(method);
+
+        if is_json {
+            builder = builder.header("Content-Type", "application/json");
+        }
+
+        if let Some(headers) = headers {
+            for header in headers {
+                builder = builder.header(header.0.to_owned(), header.1.to_owned());
+            }
+        }
+
+        let response = self
+            .client
+            .request(builder.body(if let Some(val) = body.clone() {
+                val.into()
+            } else {
+                Body::empty()
+            })?)
+            .await?;
+
+        //refresh token
+        if response.status() == StatusCode::UNAUTHORIZED {
+            let refresh = self.refresh_token().await?;
+            self.access_token = refresh.access_token;
+            let mut builder = Request::builder()
+                .uri(link.get())
+                .header("Authorization", format!("Bearer {}", self.access_token))
+                .method(method);
+
+            if is_json {
+                builder = builder.header("Content-Type", "application/json");
+            }
+
+            if let Some(headers) = headers {
+                for header in headers {
+                    builder = builder.header(header.0.to_owned(), header.1.to_owned());
+                }
+            }
+
+            let response = self
+                .client
+                .request(builder.body(if let Some(val) = body {
+                    val.into()
+                } else {
+                    Body::empty()
+                })?)
+                .await?;
+
+            return Ok(response);
+        }
 
         Ok(response)
     }
 
     pub async fn request_json_body<'de, TIn, TOut>(
-        &self,
+        &mut self,
         method: &str,
         endpoint: &str,
         body: &TIn,
@@ -167,15 +295,15 @@ impl Onedrive {
         TIn: Serialize,
         TOut: Deserialize<'de>,
     {
-        const REQUEST_BASEURL: &'static str = "https://graph.microsoft.com/v1.0/me/";
-        let request = Request::builder()
-            .uri(format!("{}{}", REQUEST_BASEURL, endpoint))
-            .header("Authorization", format!("Bearer {}", self.access_token))
-            .header("Content-Type", "application/json")
-            .method(method)
-            .body(Body::from(serde_json::to_string(body)?))?;
-
-        let response = self.client.request(request).await?;
+        let response = self
+            .request_raw(
+                method,
+                Link::Endpoint(endpoint.to_owned()),
+                true,
+                Some(serde_json::to_string(body)?),
+                None,
+            )
+            .await?;
 
         if !cb(&response)? {
             return Err(Error::new(anyhow!(
@@ -193,7 +321,7 @@ impl Onedrive {
     }
 
     pub async fn request_empty<'de, TOut>(
-        &self,
+        &mut self,
         method: &str,
         endpoint: &str,
         cb: impl FnOnce(&Response<Body>) -> Result<bool>,
@@ -201,14 +329,15 @@ impl Onedrive {
     where
         TOut: Deserialize<'de>,
     {
-        const REQUEST_BASEURL: &'static str = "https://graph.microsoft.com/v1.0/";
-        let request = Request::builder()
-            .uri(format!("{}{}", REQUEST_BASEURL, endpoint))
-            .header("Authorization", format!("Bearer {}", self.access_token))
-            .method(method)
-            .body(Body::empty())?;
-
-        let response = self.client.request(request).await?;
+        let response = self
+            .request_raw(
+                method,
+                Link::Endpoint(endpoint.to_owned()),
+                false,
+                Option::<String>::None,
+                None,
+            )
+            .await?;
 
         if !cb(&response)? {
             return Err(Error::new(anyhow!(
@@ -226,28 +355,31 @@ impl Onedrive {
     }
 
     pub async fn request_upload_file<'de>(
-        &self,
+        &mut self,
         upload_session: &UploadSession,
         bytes: &[u8],
         range_in_file: Range<usize>,
         total_file_size: usize,
     ) -> Result<UploadFile> {
-        const REQUEST_BASEURL: &'static str = "https://graph.microsoft.com/v1.0/";
-        let request = Request::builder()
-            .uri(format!("{}", upload_session.upload_url.0))
-            .header("Authorization", format!("Bearer {}", self.access_token))
-            .header("Content-Length", bytes.len().to_string())
-            .header(
-                "Content-Range",
-                format!(
-                    "bytes {}-{}/{}",
-                    range_in_file.start, range_in_file.end, total_file_size
-                ),
-            )
-            .method("PUT")
-            .body(Body::from(bytes.to_owned()))?;
+        let bytes_len = bytes.len().to_string();
+        let content_range = format!(
+            "bytes {}-{}/{}",
+            range_in_file.start, range_in_file.end, total_file_size
+        );
+        let headers = [
+            ("Content-Length", bytes_len.as_str()),
+            ("Content-Range", content_range.as_str()),
+        ];
 
-        let response = self.client.request(request).await?;
+        let response = self
+            .request_raw(
+                "PUT",
+                Link::UploadUrl(upload_session.upload_url.clone()),
+                false,
+                Option::<String>::None,
+                Some(&headers),
+            )
+            .await?;
 
         return match response.status() {
             StatusCode::ACCEPTED => {
@@ -273,13 +405,13 @@ impl Onedrive {
         };
     }
 
-    pub async fn get_root_site(&self) -> Result<Site> {
+    pub async fn get_root_site(&mut self) -> Result<Site> {
         Ok(self
             .request_empty("GET", "/sites/root", Self::default_cb(&[StatusCode::OK]))
             .await?)
     }
 
-    pub async fn get_drives(&self, site_id: &SiteId) -> Result<ListDrivesRoot> {
+    pub async fn get_drives(&mut self, site_id: &SiteId) -> Result<ListDrivesRoot> {
         Ok(self
             .request_empty(
                 "GET",
@@ -289,7 +421,7 @@ impl Onedrive {
             .await?)
     }
 
-    pub async fn get_drive(&self, drive_id: &DriveId) -> Result<Drive> {
+    pub async fn get_drive(&mut self, drive_id: &DriveId) -> Result<Drive> {
         Ok(self
             .request_empty(
                 "GET",
@@ -300,7 +432,7 @@ impl Onedrive {
     }
 
     // does not do an extra request to get the drive quota
-    pub async fn drive_exists_min(&self, site_id: &SiteId) -> Result<ListDrivesValue> {
+    pub async fn drive_exists_min(&mut self, site_id: &SiteId) -> Result<ListDrivesValue> {
         let drives = self.get_drives(site_id).await?;
         let drive = drives
             .value
@@ -319,34 +451,38 @@ impl Onedrive {
     }
 
     // does an extra request to get the drive quota
-    pub async fn drive_exists(&self, site_id: &SiteId) -> Result<Drive> {
-        use futures::future::FutureExt;
+    pub async fn drive_exists(&mut self, site_id: &SiteId) -> Result<Drive> {
         use futures::stream::StreamExt;
-        let drive = self
-            .get_drives(site_id)
-            .then(|x| async move {
-                let values = x.map(|x| x.value)?;
-                futures::stream::iter(values)
-                    .filter_map(|drive| async move {
-                        if drive.name == Self::DRIVE_NAME_FOR_CONVERSION {
-                            let drive_full = self.get_drive(&drive.id).await.ok()?;
-                            Some(drive_full)
-                        } else {
-                            None
-                        }
-                    })
-                    .take(1)
-                    .collect::<Vec<_>>()
-                    .await
-                    .into_iter()
-                    .nth(0)
-                    .ok_or(Error::new(anyhow!("conversion drive not found")))
+        let values = self.get_drives(site_id).await?.value;
+        let cell = Arc::new(Mutex::new(self.clone()));
+        let task_cell = cell.clone();
+        let drive = futures::stream::iter(values)
+            .filter_map(move |drive| {
+                let cell = task_cell.clone();
+                async move {
+                    if drive.name == Self::DRIVE_NAME_FOR_CONVERSION {
+                        let drive_full = cell.lock().await.get_drive(&drive.id).await.ok()?;
+                        Some(drive_full)
+                    } else {
+                        None
+                    }
+                }
             })
-            .await?;
+            .take(1)
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .nth(0)
+            .ok_or(Error::new(anyhow!("conversion drive not found")))?;
+
+        *self = cell.lock().await.clone(); // update self to the latest state in case a refresh happens while mapping drive values. note: probability of that is ~ 1/2^36
         Ok(drive)
     }
 
-    pub async fn create_upload_file_session(&self, drive_id: &DriveId) -> Result<UploadSession> {
+    pub async fn create_upload_file_session(
+        &mut self,
+        drive_id: &DriveId,
+    ) -> Result<UploadSession> {
         Ok(self
             .request_empty(
                 "POST",
@@ -357,7 +493,7 @@ impl Onedrive {
     }
 
     async fn upload_file_lost_chunks(
-        &self,
+        &mut self,
         upload_session: &UploadSession,
         file: &mut tokio::fs::File,
         lost_chunks: Vec<Range<usize>>,
@@ -396,7 +532,7 @@ impl Onedrive {
     }
 
     pub async fn upload_file(
-        &self,
+        &mut self,
         upload_session: &UploadSession,
         file_path: &Path,
     ) -> Result<UploadFileFinished> {
@@ -475,7 +611,11 @@ impl Onedrive {
         }
     }
 
-    pub async fn delete_file(&self, drive_id: &DriveId, file: &UploadFileFinished) -> Result<()> {
+    pub async fn delete_file(
+        &mut self,
+        drive_id: &DriveId,
+        file: &UploadFileFinished,
+    ) -> Result<()> {
         Ok(self
             .request_empty(
                 "DELETE",
@@ -485,11 +625,14 @@ impl Onedrive {
             .await?)
     }
 
-    pub async fn get_url_to_file_as_pdf(&self, file: &UploadFileFinished) -> Result<String> {
+    pub async fn get_url_to_file_as_pdf(&mut self, file: &UploadFileFinished) -> Result<String> {
         let resp = self
             .request_raw(
                 "GET",
-                &format!("/drive/items/{}/content?format=pdf", &file.id),
+                Link::Endpoint(format!("/drive/items/{}/content?format=pdf", &file.id)),
+                false,
+                Option::<String>::None,
+                None,
             )
             .await?;
 

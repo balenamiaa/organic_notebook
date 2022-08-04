@@ -1,0 +1,12 @@
+name = "OnedriveTokenCreator"
+uuid = "6a37ec10-1373-11ed-2b14-ef139aabfa70"
+authors = ["baren "]
+version = "0.1.0"
+
+[deps]
+DefaultApplication = "3f0dd361-4fe0-5fc6-8523-80b14ec94d85"
+DotEnv = "4dc1fcf4-5e3b-5448-94ab-0c38ec0385c1"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"

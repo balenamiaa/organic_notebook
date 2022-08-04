@@ -70,9 +70,6 @@ type
 
 
 
-
-
-
 proc `$`*(self: DocumentId): string {.borrow.}
 proc `$`*(self: IdeaRefId): string {.borrow.}
 proc `$`*(self: IdeaId): string {.borrow.}

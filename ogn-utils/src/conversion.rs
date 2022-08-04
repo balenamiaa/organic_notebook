@@ -16,12 +16,12 @@ pub trait ToPdf
 where
     Self: Sized,
 {
-    async fn convert_to_pdf(&self, onedrive: &Onedrive, output_path: &Path) -> Result<()>;
+    async fn convert_to_pdf(&self, onedrive: &mut Onedrive, output_path: &Path) -> Result<()>;
 }
 
 #[async_trait::async_trait]
 impl ToPdf for NonPDFDocument {
-    async fn convert_to_pdf(&self, onedrive: &Onedrive, output_path: &Path) -> Result<()> {
+    async fn convert_to_pdf(&self, onedrive: &mut Onedrive, output_path: &Path) -> Result<()> {
         let root_site = onedrive.get_root_site().await?;
         let drive = onedrive.drive_exists(&root_site.id).await?;
 
