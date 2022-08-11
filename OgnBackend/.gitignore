@@ -1,0 +1,4 @@
+Manifest.toml
+/documents
+/nginx
+env_secrets.jl
