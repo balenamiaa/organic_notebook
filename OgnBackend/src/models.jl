@@ -1,22 +1,22 @@
 struct DocumentId
-    id::Int32
+    id::UInt32
 end
 
 struct IdeaId
-    id::Int32
+    id::UInt32
 end
 
 struct IdeaRefId
-    id::Int32
+    id::UInt32
 end
 
 struct ExtractedTextId
-    id::Int32
+    id::UInt32
 end
 
 struct DocumentPage
     document_id::DocumentId
-    page_number::Union{Nothing,Some{Int32}}
+    page_number::Union{Nothing,Some{UInt32}}
 end
 
 struct Document

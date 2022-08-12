@@ -44,14 +44,28 @@ function upload_document(req::HTTP.Request)
             bytes_collected
         end
 
+        pdf_bytes = if ext ∈ (
+            "docx", "doc",
+            "pptx", "ppt"
+        )
+            io = IOBuffer(bytes_collected)
+            out = IOBuffer()
+
+            convert_document(io, length(bytes_collected), out, ext => "pdf")
+
+            out |> take!
+        else
+            bytes_collected
+        end
+
         id = CRC32c.crc32c(bytes_collected)
 
         fetch(document_exists(pool(), DocumentId(id))) && continue
 
         open(
             joinpath(Globals.DB_DOCUMENTS_DIRPATH, "$(id).$ext");
-            create = true,
-            write = true,
+            create=true,
+            write=true
         ) do io
             write(io, bytes_collected)
         end

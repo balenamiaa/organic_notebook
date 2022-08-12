@@ -58,11 +58,12 @@ end
 
 function download_nginx_windows()
     win_nginx_tarball = let
-        "{red}downloading nginx for {blue}windows{/blue} from: {green}$WINDOWS_BINARY_DOWNLOAD_URL{/green}{/red}" |> tprintln
-        p = ProgressUnknown(; spinner=true)
+        "{red}downloading nginx for {blue}windows{/blue} from: {green}$WINDOWS_BINARY_DOWNLOAD_URL{/green}{/red}" |>
+        tprintln
+        p = ProgressUnknown(; spinner = true)
         win_nginx_tarball = Downloads.download(
             WINDOWS_BINARY_DOWNLOAD_URL;
-            progress=(_, _) -> next!(p)
+            progress = (_, _) -> next!(p),
         )
         println()
         win_nginx_tarball
@@ -70,7 +71,7 @@ function download_nginx_windows()
 
     nginx_extracted_dir = open(win_nginx_tarball) do io
         decompressor = GzipDecompressorStream(io)
-        Tar.extract(decompressor; set_permissions=false)
+        Tar.extract(decompressor; set_permissions = false)
     end
 
     joinpath(nginx_extracted_dir, "nginx-$(NGINX_VERSION)", "nginx.exe")
@@ -83,10 +84,14 @@ function install_nginx(nginx_origin_bin_path)
 
     try
         if isdir(nginx_dir)
-            tprintln("{red}OGN_NGINX_INSTALL_DIR does not exist. Attempting to delete all and recreate...{/red}")
-            rm(nginx_dir; force=true, recursive=true)
+            tprintln(
+                "{red}OGN_NGINX_INSTALL_DIR does not exist. Attempting to delete all and recreate...{/red}",
+            )
+            rm(nginx_dir; force = true, recursive = true)
         else
-            tprintln("{red}OGN_NGINX_INSTALL_DIR does not exist. Attempting to create...{/red}")
+            tprintln(
+                "{red}OGN_NGINX_INSTALL_DIR does not exist. Attempting to create...{/red}",
+            )
         end
 
         mkdir(nginx_dir)
@@ -97,20 +102,21 @@ function install_nginx(nginx_origin_bin_path)
     end
     tprintln("{green}OGN_NGINX_INSTALL_DIR created: {blue} $nginx_dir{/blue}.{/green}")
 
-    nginx_bin_path = joinpath(
-        nginx_dir,
-        if Sys.iswindows()
-            "nginx.exe"
-        else
-            "nginx"
-        end
-    )
+    nginx_bin_path = joinpath(nginx_dir, if Sys.iswindows()
+        "nginx.exe"
+    else
+        "nginx"
+    end)
 
     try
-        tprintln("{green}Attempting to copy nginx from {blue}$(nginx_origin_bin_path){/blue} to {blue}$(nginx_bin_path){/blue}...{/green}")
-        cp(nginx_origin_bin_path, nginx_bin_path; force=true, follow_symlinks=true)
+        tprintln(
+            "{green}Attempting to copy nginx from {blue}$(nginx_origin_bin_path){/blue} to {blue}$(nginx_bin_path){/blue}...{/green}",
+        )
+        cp(nginx_origin_bin_path, nginx_bin_path; force = true, follow_symlinks = true)
     catch e
-        tprintln("{red}failed to copy nginx from {blue}$(nginx_origin_bin_path){/blue} to {blue}$(nginx_bin_path){/blue}{/red}:")
+        tprintln(
+            "{red}failed to copy nginx from {blue}$(nginx_origin_bin_path){/blue} to {blue}$(nginx_bin_path){/blue}{/red}:",
+        )
         tprintln("{blue}$e{/blue}")
         return
     end
@@ -137,15 +143,20 @@ function install_nginx(nginx_origin_bin_path)
     "   {blue}$(nginx_temp_dir){/blue}," |> tprintln
     "   {blue}$(nginx_cache_dir){/blue}" |> tprintln
 
-    open(joinpath(nginx_conf_dir, "nginx.conf"); create=true, write=true) do io
+    open(joinpath(nginx_conf_dir, "nginx.conf"); create = true, write = true) do io
         @inline convert_slashes(x) = replace(x, "\\" => "/")
         documents_dirpath = ENV["DB_DOCUMENTS_DIRPATH"]
         server_host = ENV["OGN_SERVER_HOST"]
         server_port = ENV["OGN_SERVER_PORT"]
-        write(io, create_nginx_conf(
-            server_host, server_port,
-            documents_dirpath |> convert_slashes, nginx_cache_dir |> convert_slashes
-        ))
+        write(
+            io,
+            create_nginx_conf(
+                server_host,
+                server_port,
+                documents_dirpath |> convert_slashes,
+                nginx_cache_dir |> convert_slashes,
+            ),
+        )
     end
 
     nginx_bin_path
@@ -170,7 +181,9 @@ function run()
     nginx_origin_bin_path = @static if Sys.iswindows()
         download_nginx_windows()
     else
-        tprintln("{blue}Automatic acquisition of nginx binaries is not supported for: {green}$(Sys.KERNEL){/green}{/blue}")
+        tprintln(
+            "{blue}Automatic acquisition of nginx binaries is not supported for: {green}$(Sys.KERNEL){/green}{/blue}",
+        )
         tprintln("{blue}Please manually enter path to nginx binary:{/blue}")
         nginx_origin_bin_path = readline()
     end
@@ -186,4 +199,3 @@ function run()
 end
 
 run()
-
