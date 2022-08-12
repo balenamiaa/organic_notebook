@@ -18,10 +18,14 @@ end
 StructTypes.StructType(::Type{Pagination}) = StructTypes.Struct()
 StructTypes.StructType(::Type{<:PaginatedResult}) = StructTypes.Struct()
 
+
+PaginatedResult(items::Vector{T}, num_retrieved, num_remaining) where {T} =
+    PaginatedResult{T}(items, num_retrieved, num_remaining)
+
 function PaginatedResult(items::Vector{T}, num_retrieved, num_total, pagination) where {T}
     num_remaining = max(num_total - (pagination.page_num + 1) * pagination.page_size, 0)
 
-    PaginatedResult{T}(items, num_retrieved, num_remaining)
+    PaginatedResult(items, num_retrieved, num_remaining)
 end
 
 function extract_pagination(req::HTTP.Request)

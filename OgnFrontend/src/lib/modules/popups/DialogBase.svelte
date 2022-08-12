@@ -1,30 +1,30 @@
 <script>
-	import Portal from './Portal.svelte'
-	import { createEventDispatcher, onDestroy, onMount } from 'svelte'
-	import { fade } from 'svelte/transition'
-	import { outClickEvent } from '$lib/utils/events/outClickEvent'
-	import { browser } from '$app/env'
+	import Portal from './Portal.svelte';
+	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import { outClickEvent } from '$lib/utils/events/outClickEvent';
+	import { browser } from '$app/env';
 
-	const dispatch = createEventDispatcher()
+	const dispatch = createEventDispatcher();
 	onMount(() => {
-		if (browser) document.body.style.overflow = 'hidden'
-	})
+		if (browser) document.body.style.overflow = 'hidden';
+	});
 	onDestroy(() => {
-		if (browser) document.body.style.overflow = ''
-	})
+		if (browser) document.body.style.overflow = '';
+	});
 </script>
 
 <Portal>
 	<div
 		id="root"
 		style="left: {window.scrollX}px; top: {window.scrollY}px;"
-		transition:fade={{ delay: 0, duration: 100}}
+		transition:fade={{ delay: 0, duration: 100 }}
 	>
 		<div
 			id="dialog"
 			use:outClickEvent
 			on:outClick={() => {
-				dispatch('close')
+				dispatch('close');
 			}}
 		>
 			<slot />

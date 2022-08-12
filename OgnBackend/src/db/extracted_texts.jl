@@ -165,6 +165,21 @@ end
     end
 end
 
+@inline function extracted_texts_for_document_exists(pool, document_id::DocumentId)
+    query = raw"SELECT COUNT(*) FROM extracted_texts WHERE document_id = $1;"
+    result = async_execute(pool, query, (document_id,))
+    @async begin
+        result = result |> fetch
+        cols = Tables.columns(result)
+
+        if isempty(cols.count)
+            false
+        else
+            first(cols.count) > 0
+        end
+    end
+end
+
 @inline function get_extracted_texts_for_document_bulk(
     pool,
     document_ids::Vector{DocumentId},

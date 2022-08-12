@@ -1,12 +1,12 @@
 <script>
-	import Autocomplete from '$lib/modules/inputs/Autocomplete.svelte'
-	import { getContext } from 'svelte'
-	import { documentsKey } from '../stores'
-	import DocumentView from './DocumentView.svelte'
+	import Autocomplete from '$lib/modules/inputs/Autocomplete.svelte';
+	import { getContext } from 'svelte';
+	import { DocumentsContextKey } from '../stores';
+	import DocumentView from './DocumentView.svelte';
 
-	let options = []
+	let options = [];
 
-	const { documents } = getContext(documentsKey)
+	const { documentsContext } = getContext(DocumentsContextKey);
 	const searchOptions = {
 		maxCharsShowPreMatch: 10,
 		maxCharsShowAfterMatch: 10,
@@ -15,55 +15,55 @@
 		 * @type {'autocomplete' | 'preview-page'}
 		 */
 		resultStyle: 'autocomplete',
-	}
+	};
 
 	$: if (searchOptions.resultStyle === 'preview-page') {
 	}
 
 	function onInput(term) {
 		if (!term) {
-			options = []
-			return
+			options = [];
+			return;
 		}
-		options = $documents.extractedTexts.filter((extractedText) => {
-			return extractedText.content.includes(term)
-		})
+		options = $documentsContext.extractedTexts.items.filter((extractedText) => {
+			return extractedText.content.includes(term);
+		});
 	}
 	function getText(extractedText, term) {
-		const regex = new RegExp(term, 'g')
-		let content
+		const regex = new RegExp(term, 'g');
+		let content;
 		if (searchOptions.lineBreak) {
-			content = extractedText.content
+			content = extractedText.content;
 		} else {
-			content = extractedText.content.replaceAll('\n', ' ')
+			content = extractedText.content.replaceAll('\n', ' ');
 		}
-		const matches = [...content.matchAll(regex)]
-		let out = ''
-		let prevIndex = 0
+		const matches = [...content.matchAll(regex)];
+		let out = '';
+		let prevIndex = 0;
 		for (let i = 0; i < matches.length; i++) {
-			const match = matches[i]
+			const match = matches[i];
 			if (match.index - prevIndex < searchOptions.maxCharsShowPreMatch) {
-				out += content.slice(match.index, match.index + term.length)
+				out += content.slice(match.index, match.index + term.length);
 			} else {
 				out +=
 					'...' +
 					content.slice(
 						match.index - searchOptions.maxCharsShowPreMatch,
 						match.index + term.length + searchOptions.maxCharsShowAfterMatch,
-					)
+					);
 			}
-			prevIndex = match.index
+			prevIndex = match.index;
 		}
-		return out
+		return out;
 	}
 	function viewDocument(extractedText) {
-		documents.pushAction({
+		documentsContext.pushAction({
 			type: 'open-document',
 			payload: {
 				pageNumber: extractedText.doc_page.page_number,
 				documentId: extractedText.doc_page.document_id,
 			},
-		})
+		});
 	}
 </script>
 
@@ -103,7 +103,8 @@
 >
 	<svelte:fragment slot="item" let:option let:inputValue>
 		Document: <strong
-			>{documents.getDocumentById($documents.documents, option.doc_page.document_id).title}</strong
+			>{documentsContext.getDocumentById($documentsContext.documents, option.doc_page.document_id)
+				.title}</strong
 		>
 		Page: <strong>{option.doc_page.page_number}</strong>
 		<br />
@@ -124,7 +125,10 @@
 {#if searchOptions.resultStyle === 'preview-page'}
 	{#each options as extractedText}
 		<DocumentView
-			doc={documents.getDocumentById($documents.documents, extractedText.doc_page.document_id)}
+			doc={documentsContext.getDocumentById(
+				$documentsContext.documents,
+				extractedText.doc_page.document_id,
+			)}
 			currentPage={extractedText.doc_page.page_number}
 			onlyShowCurrentPage={true}
 		/>

@@ -1,10 +1,10 @@
 <script>
-	import Portal from './Portal.svelte'
+	import Portal from './Portal.svelte';
 
-	export let show = false
-	export let posUnit = 'px'
-	export let top = 0
-	export let left = 0
+	export let show = false;
+	export let posUnit = 'px';
+	export let top = 0;
+	export let left = 0;
 </script>
 
 {#if show}

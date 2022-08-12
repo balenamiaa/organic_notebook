@@ -1,20 +1,20 @@
 <script>
-	import { outClickEvent } from '$lib/utils/events/outClickEvent'
-	import { createEventDispatcher } from 'svelte'
-	import Divider from '$lib/modules/others/Divider.svelte'
+	import { outClickEvent } from '$lib/utils/events/outClickEvent';
+	import { createEventDispatcher } from 'svelte';
+	import Divider from '$lib/modules/others/Divider.svelte';
 
-	export let name = ''
-	export let placeholder = 'Enter text here...'
-	export let options = ['All about AJAM', 'All about BAAA', 'All about RRAA']
-	export let maxWidth = '260px'
-	export let showNoItem = true
-	export let getText = (value, inputValue) => value
-	export let autocomplete = true
+	export let name = '';
+	export let placeholder = 'Enter text here...';
+	export let options = ['All about AJAM', 'All about BAAA', 'All about RRAA'];
+	export let maxWidth = '260px';
+	export let showNoItem = true;
+	export let getText = (value, inputValue) => value;
+	export let autocomplete = true;
 
-	const dispatch = createEventDispatcher()
-	let showAutocompleteList = false
-	let input
-	let inputValue = ''
+	const dispatch = createEventDispatcher();
+	let showAutocompleteList = false;
+	let input;
+	let inputValue = '';
 </script>
 
 <div
@@ -32,12 +32,12 @@
 			bind:this={input}
 			on:focus={() => (showAutocompleteList = true)}
 			on:keydown={(event) => {
-				if (!autocomplete) true
+				if (!autocomplete) true;
 				if (event.key === 'Enter') {
 					const option = options.find(
 						(op) => getText(op, inputValue).toLowerCase() === input.value.toLowerCase(),
-					)
-					if (option) dispatch('optionSelect', { option })
+					);
+					if (option) dispatch('optionSelect', { option });
 				}
 			}}
 			on:input
@@ -50,8 +50,8 @@
 				{#each options as option}
 					<div
 						on:click={() => {
-							dispatch('optionSelect', { option })
-							showAutocompleteList = false
+							dispatch('optionSelect', { option });
+							showAutocompleteList = false;
 						}}
 						class="autocomplete-item pointer hover-bg selected-bg"
 					>
@@ -66,7 +66,7 @@
 			<div class="autocomplete-root">
 				<div
 					on:click={() => {
-						showAutocompleteList = false
+						showAutocompleteList = false;
 					}}
 					class="autocomplete-item pointer hover-bg selected-bg"
 				>

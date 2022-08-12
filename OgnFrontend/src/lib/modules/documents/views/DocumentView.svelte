@@ -1,69 +1,70 @@
 <script>
-	import { createIdea, createIdeaReference } from '$lib/modules/ideas/api'
+	import { createIdea, createIdeaReference } from '$lib/modules/ideas/api';
 
-	import { ideasKey } from '$lib/modules/ideas/stores'
+	import { IdeasContextKey } from '$lib/modules/ideas/stores';
 
-	import PdfDocument from '$lib/modules/pdf/views/PdfDocument.svelte'
-	import PdfPage from '$lib/modules/pdf/views/PdfPage.svelte'
-	import Dialog from '$lib/modules/popups/Dialog.svelte'
-	import Menu from '$lib/modules/popups/Menu.svelte'
-	import MenuItem from '$lib/modules/popups/MenuItem.svelte'
-	import Popups from '$lib/modules/popups/Popups.svelte'
-	import { baseUrl } from '$lib/utils/api'
-	import { getContext, tick } from 'svelte'
+	import PdfDocument from '$lib/modules/pdf/views/PdfDocument.svelte';
+	import PdfPage from '$lib/modules/pdf/views/PdfPage.svelte';
+	import Dialog from '$lib/modules/popups/Dialog.svelte';
+	import Menu from '$lib/modules/popups/Menu.svelte';
+	import MenuItem from '$lib/modules/popups/MenuItem.svelte';
+	import Popups from '$lib/modules/popups/Popups.svelte';
+	import { baseUrl } from '$lib/utils/api';
+	import { getContext, tick } from 'svelte';
 
-	export let doc
+	export let doc;
 
-	export let currentPage = -1
-	export let onlyShowCurrentPage = false
+	export let currentPage = -1;
+	export let onlyShowCurrentPage = false;
 
-	const { ideas } = getContext(ideasKey)
+	const { ideasContext } = getContext(IdeasContextKey);
 
-	let numPages = 0
-	let showSelectionMenu = false
-	let menuPos = null
-	let selectionText = ''
-	let selectionPage = 0
-	let ideaAlreadyExist
-	let documentFile
-	let moreOption = false
+	let numPages = 0;
+	let showSelectionMenu = false;
+	let menuPos = null;
+	let selectionText = '';
+	let selectionPage = 0;
+	let ideaAlreadyExist;
+	let documentFile;
+	let moreOption = false;
 
 	$: if (documentFile && currentPage != -1) {
 		tick().then(() => {
-			moveToPage(doc.id, currentPage)
-		})
+			moveToPage(doc.id, currentPage);
+		});
 	}
 
 	function onSelectionEnd(event) {
-		menuPos = event.detail.posInScreen
-		selectionText = event.detail.selectionText
+		menuPos = event.detail.posInScreen;
+		selectionText = event.detail.selectionText;
 		selectionPage = Number(
 			event.detail.focusNode.parentElement.closest('[data-page-number]').dataset.pageNumber,
-		)
-		showSelectionMenu = true
-		ideaAlreadyExist = $ideas.ideas.findIndex((idea) => idea.label === selectionText) !== -1
+		);
+		showSelectionMenu = true;
+		ideaAlreadyExist =
+			$ideasContext.ideas.items.findIndex((idea) => idea.label === selectionText) !== -1;
 	}
 	function onSelectionChange(event) {
-		showSelectionMenu = false
+		showSelectionMenu = false;
 	}
 	async function onIdeaRefSubmit(event) {
-		const ideaId = event.target.elements['idea-id'].value
+		const ideaId = parseInt(event.target.elements['idea-id'].value);
 		const response = await createIdeaReference({
-			idea_ref: ideaId,
-			idea_ref_text: selectionText,
 			doc_page: {
 				document_id: doc.id,
 				page_number: selectionPage,
 			},
-		})
+			idea_ref: ideaId,
+			idea_ref_text: selectionText,
+		});
 		if (response.status === 200) {
-			ideas.pushAction({ type: 'refresh-idea-ref', payload: { ideaId } })
+			ideasContext.pushAction({ type: 'refresh-idea-ref', payload: { ideaId } });
 		}
-		showSelectionMenu = false
+		showSelectionMenu = false;
 	}
 	async function onCreateNewIdeaClick() {
-		let response = await createIdea({ label: selectionText })
-		const idea = await response.json()
+		let response = await createIdea({ label: selectionText });
+		const idea = await response.json();
 
 		response = await createIdeaReference({
 			idea_ref: idea.id,
@@ -72,17 +73,17 @@
 				document_id: doc.id,
 				page_number: selectionPage,
 			},
-		})
+		});
 		if (response.status === 200) {
-			ideas.refresh()
+			ideasContext.refresh();
 		}
-		showSelectionMenu = false
+		showSelectionMenu = false;
 	}
 	async function moveToPage(documentId, page) {
 		if (doc.filetype === 'pdf') {
 			document
 				.querySelector(`[data-document-id="${documentId}"] [data-page-number="${page}"]`)
-				.scrollIntoView()
+				.scrollIntoView();
 		}
 	}
 </script>
@@ -91,8 +92,8 @@
 	<PdfDocument
 		srcUrl={`${baseUrl}/static/${doc.id}.${doc.filetype}`}
 		on:loadSuccess={(event) => {
-			numPages = event.detail.numPages
-			documentFile = event.detail
+			numPages = event.detail.numPages;
+			documentFile = event.detail;
 		}}
 		documentId={doc.id}
 		on:selectionEnd={onSelectionEnd}
@@ -124,8 +125,8 @@
 	{#if moreOption}
 		<Dialog
 			on:close={() => {
-				showSelectionMenu = false
-				moreOption = false
+				showSelectionMenu = false;
+				moreOption = false;
 			}}
 		>
 			<svelte:fragment slot="title"
@@ -134,7 +135,7 @@
 			<form on:submit|preventDefault={onIdeaRefSubmit}>
 				<label for="idea-id">Idea</label>
 				<select id="idea-id" name="idea-id">
-					{#each $ideas.ideas as idea}
+					{#each $ideasContext.ideas.items as idea}
 						<option value={idea.id}>{idea.label}</option>
 					{/each}
 				</select>

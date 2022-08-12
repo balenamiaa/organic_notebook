@@ -8,18 +8,19 @@ function get_extracted_texts(req::HTTP.Request)
     pagination = pagination_result.pagination
 
     if isnothing(pagination)
-        result = get_extracted_texts(pool()) |> fetch
+        items = get_extracted_texts(pool()) |> fetch
+        result = PaginatedResult(items, length(items), 0)
 
         return HTTP.Response(Status.OK, result |> JSON3.write)
     else
         pagination = something(pagination)
 
-        result =
+        items =
             get_extracted_texts(pool(), (pagination.page_num, pagination.page_size)) |>
             fetch
         result = PaginatedResult(
-            result,
-            length(result),
+            items,
+            length(items),
             get_num_documents(pool()) |> fetch,
             pagination,
         )

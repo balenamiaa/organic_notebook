@@ -1,41 +1,66 @@
-import { deleteRequest, fetchFromBase, getRequest, postRequest } from '$lib/utils/api.js'
+import {
+	deleteRequest,
+	fetchFromBase,
+	getPaginatedRequest,
+	getRequest,
+	postRequest,
+} from '$lib/utils/api.js';
 
-export function getDocuments(page = 0, pageSize = 10) {
-	return getRequest(`/documents?page_num=${page}&page_size=${pageSize}`)
+export function getDocuments(options = {}) {
+	return getPaginatedRequest('/documents', options);
 }
 
 export function getDocumentEntry(id) {
-	return getRequest(`/documents/${id}`)
+	return getRequest(`/documents/${id}`);
 }
 
 export function uploadDocument(files) {
-	const formData = new FormData()
+	const formData = new FormData();
 	for (let i = 0; i < files.length; i++) {
-		formData.append(files[i].name, files[i])
+		formData.append(files[i].name.replace(/\.[^/.]+$/, ''), files[i]);
 	}
-	return postRequest('/documents', { body: formData })
+	return postRequest('/documents', { body: formData });
 }
 
 export function getDocumentFile(document) {
-	return fetchFromBase(`/host/static/${document.id}.${document.filetype}`)
+	return fetchFromBase(`/host/static/${document.id}.${document.filetype}`);
 }
 
 export function deleteDocument(documentId) {
-	return deleteRequest(`/documents/${documentId}`)
+	return deleteRequest(`/documents/${documentId}`);
 }
 
-export function getExtractedTexts(page = 0, pageSize = 2454348558858583) {
-	return getRequest(`/extracted_texts?page_num=${page}&page_size=${pageSize}`)
+export function getExtractedTexts(options = {}) {
+	return getPaginatedRequest(`/extracted_texts`, options);
 }
 
 export function getDocumentsExtractedText(documentIds) {
-	return getRequest('/extracted_texts/document', { docIds: documentIds })
+	var ids = '';
+	documentIds.forEach((element) => {
+		ids += element;
+		ids += ' ';
+	});
+
+	return getRequest('/extracted_texts/documents', {
+		body: ids,
+	});
 }
 
 export function extractDocumentText(documentId) {
-	return postRequest(`/extracted_texts/document/${documentId}`)
+	return postRequest(`/extracted_texts/documents/${documentId}`).then(async (response) => {
+		if (response.status == 409) {
+			// document already has texts for it extracted. handle appropriately or do nothing
+			console.log(await response.text());
+		}
+
+		return response;
+	});
 }
 
-export function deleteDocumentExtractedText(documentId) {
-	return deleteRequest(`/extracted_texts/document/${documentId}`)
+export function deleteExtractedTextsForDocument(documentId) {
+	return deleteRequest(`/extracted_texts/documents/${documentId}`);
+}
+
+export function deleteIdeaRefsForDocument(documentId) {
+	return deleteRequest(`/idea_refs/documents/${documentId}`);
 }

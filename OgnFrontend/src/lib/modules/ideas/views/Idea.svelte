@@ -1,76 +1,82 @@
 <script>
-	import { documentsKey } from '$lib/modules/documents/stores.js'
+	import { DocumentsContextKey } from '$lib/modules/documents/stores.js';
 
-	import { groupBySingle } from '$lib/utils/array-utils.js'
-	import { getContext } from 'svelte'
-	import { createIdea, deleteIdea, deleteIdeaRef, getIdeaEntry, getIdeaRefs } from '../api.js'
-	import { ideasKey } from '../stores.js'
+	import { getContext } from 'svelte';
+	import {
+		createIdea,
+		deleteIdea,
+		deleteIdeaRef,
+		deleteIdeaRefsForIdea,
+		getIdeaRefsForIdea,
+	} from '../api.js';
+	import { IdeasContextKey } from '../stores.js';
 
-	const { ideas } = getContext(ideasKey)
-	const { documents } = getContext(documentsKey)
-	let currentIdea
-	let currentIdeaRefs
-	ideas.refresh()
+	const { ideasContext } = getContext(IdeasContextKey);
+	const { documentsContext } = getContext(DocumentsContextKey);
+	let currentIdea;
+	let ideaRefsForCurrentIdea;
+	ideasContext.refresh();
 
 	$: if (currentIdea) {
-		fetchIdeaRefs(currentIdea.id)
+		populateCurrentIdeaRefsForIdea(currentIdea.id);
 	}
 
-	$: if ($ideas.actions.length > 0) {
-		const index = $ideas.actions.length - 1
-		const action = $ideas.actions[index]
+	$: if ($ideasContext.actions.length > 0) {
+		const index = $ideasContext.actions.length - 1;
+		const action = $ideasContext.actions[index];
 		switch (action.type) {
 			case 'refresh-idea-ref':
 				{
-					fetchIdeaRefs(action.payload.ideaId)
-					ideas.removeAction(index)
+					populateCurrentIdeaRefsForIdea(action.payload.ideaId);
+					ideasContext.removeAction(index);
 				}
-				break
+				break;
 		}
 	}
 
 	async function onSubmit(event) {
 		try {
-			const ideaLabel = event.target.elements['idea_label'].value
-			const response = await createIdea({ label: ideaLabel })
+			const ideaLabel = event.target.elements['idea_label'].value;
+			const response = await createIdea({ label: ideaLabel });
 
 			if (response.status === 200) {
-				ideas.refresh()
+				ideasContext.refresh();
 			}
 		} catch (err) {}
 	}
 	async function onRemoveIdea(ideaId) {
 		try {
-			const response = await deleteIdea(ideaId)
+			await deleteIdeaRefsForIdea(ideaId);
+			const response = await deleteIdea(ideaId);
 			if (response.status === 200) {
-				ideas.refresh()
+				ideasContext.refresh();
 			}
 		} catch (err) {}
 	}
 	async function onRemoveIdeaRef(ideaRefId) {
 		try {
-			const response = await deleteIdeaRef(ideaRefId.id)
+			const response = await deleteIdeaRef(ideaRefId.id);
 			if (response.status === 200) {
-				fetchIdeaRefs(currentIdea.id)
+				populateCurrentIdeaRefsForIdea(currentIdea.id);
 			}
 		} catch (err) {}
 	}
-	async function fetchIdeaRefs(ideaId) {
+	async function populateCurrentIdeaRefsForIdea(ideaId) {
 		try {
-			const response = await getIdeaRefs(ideaId)
+			const response = await getIdeaRefsForIdea(ideaId);
 			if (response.status === 200) {
-				currentIdeaRefs = await response.json()
+				ideaRefsForCurrentIdea = await response.json();
 			}
 		} catch (err) {}
 	}
 	function viewDocument(doc) {
-		documents.pushAction({
+		documentsContext.pushAction({
 			type: 'open-document',
 			payload: {
 				pageNumber: doc.page_number,
 				documentId: doc.document_id,
 			},
-		})
+		});
 	}
 </script>
 
@@ -84,9 +90,9 @@
 		</div>
 	</form>
 	<h3>List</h3>
-	{#if $ideas.ideas}
+	{#if $ideasContext.ideas.items}
 		<ol>
-			{#each $ideas.ideas as idea}
+			{#each $ideasContext.ideas.items as idea}
 				<li>
 					<span>
 						{idea.label}
@@ -96,14 +102,14 @@
 				</li>
 			{/each}
 		</ol>
-		{#if currentIdea && currentIdeaRefs}
+		{#if currentIdea && ideaRefsForCurrentIdea}
 			<h3>{currentIdea.label}</h3>
 			<ol>
-				{#each currentIdeaRefs.idea_refs as ideaRef}
+				{#each ideaRefsForCurrentIdea.items as ideaRef}
 					<li>
 						<span>
-							{ideaRef.idea_ref_text} | doc: {documents.getDocumentById(
-								$documents.documents,
+							{ideaRef.idea_ref_text} | doc: {documentsContext.getDocumentById(
+								$documentsContext.documents,
 								ideaRef.doc_page.document_id,
 							).title} page: {ideaRef.doc_page.page_number}
 						</span>

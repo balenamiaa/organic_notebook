@@ -1,49 +1,49 @@
 <script context="module">
-	import workerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url'
-	import pdfViewStyle from 'pdfjs-dist/web/pdf_viewer.css'
-	import { readable } from 'svelte/store'
-	import * as pdfjs from 'pdfjs-dist'
-	pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
+	import workerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url';
+	import pdfViewStyle from 'pdfjs-dist/web/pdf_viewer.css';
+	import { readable } from 'svelte/store';
+	import * as pdfjs from 'pdfjs-dist';
+	pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 	const pdfWorker = readable(null, (set) => {
-		const worker = new pdfjs.PDFWorker()
-		set(worker)
-		return () => worker.destroy()
-	})
+		const worker = new pdfjs.PDFWorker();
+		set(worker);
+		return () => worker.destroy();
+	});
 </script>
 
 <script>
-	import { createEventDispatcher, setContext, onDestroy } from 'svelte'
-	import { createPdfDocument, PdfKey } from '../stores'
-	import { documentViewerEvent } from '$lib/utils/events/documentViewerEvent'
+	import { createEventDispatcher, setContext, onDestroy } from 'svelte';
+	import { createPdfDocumentContext, pdfContextKey } from '../stores';
+	import { documentViewerEvent } from '$lib/utils/events/documentViewerEvent';
 
-	export let srcUrl
-	export let documentId
+	export let srcUrl;
+	export let documentId;
 
-	let loadingTask = null
-	const padding = 24
-	const pdfDocument = createPdfDocument({ padding })
-	const dispatch = createEventDispatcher()
+	let loadingTask = null;
+	const padding = 24;
+	const pdfDocumentContext = createPdfDocumentContext({ padding });
+	const dispatch = createEventDispatcher();
 
-	setContext(PdfKey, pdfDocument)
+	setContext(pdfContextKey, pdfDocumentContext);
 
-	$: if (srcUrl) loadPdf(srcUrl)
+	$: if (srcUrl) loadPdf(srcUrl);
 
 	async function loadPdf(url) {
-		loadingTask = pdfjs.getDocument({ url, worker: $pdfWorker })
+		loadingTask = pdfjs.getDocument({ url, worker: $pdfWorker });
 		try {
-			const prevDoc = $pdfDocument
-			$pdfDocument = await loadingTask.promise
-			dispatch('loadSuccess', $pdfDocument)
+			const prevDoc = $pdfDocumentContext;
+			$pdfDocumentContext = await loadingTask.promise;
+			dispatch('loadSuccess', $pdfDocumentContext);
 
-			prevDoc?.destroy()
-			prevDoc?.cleanup()
+			prevDoc?.destroy();
+			prevDoc?.cleanup();
 		} catch (err) {}
 	}
 
 	onDestroy(() => {
-		$pdfDocument?.destroy()
-		$pdfDocument?.cleanup(false)
-	})
+		$pdfDocumentContext?.destroy();
+		$pdfDocumentContext?.cleanup(false);
+	});
 </script>
 
 <div

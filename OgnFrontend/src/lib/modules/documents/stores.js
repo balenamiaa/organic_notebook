@@ -1,43 +1,44 @@
-import { writable } from 'svelte/store'
-import { getDocuments, getExtractedTexts } from './api'
+import { asJson } from '$lib/utils/api';
+import { writable } from 'svelte/store';
+import { getDocuments, getExtractedTexts } from './api';
 
-export const documentsKey = Symbol()
+export const DocumentsContextKey = Symbol();
 
-export function createDocuments() {
-	const { subscribe, set, update } = writable({ documents: [], actions: [], extractedTexts: [] })
+export function createDocumentsContext() {
+	const { subscribe, set, update } = writable({ documents: [], actions: [], extractedTexts: [] });
 
 	return {
 		subscribe,
 		set,
 		update,
 		refresh: async () => {
-			const documents = await getDocuments().then(response => response.json())
-			update((values) => {
-				values.documents = documents.documents
-				return values
-			})
+			const documents = await asJson(getDocuments());
+			update((context) => {
+				context.documents = documents;
+				return context;
+			});
 		},
 		refreshExtractedTexts: async () => {
-			const json = await getExtractedTexts().then(response => response.json())
-			update((values) => {
-				values.extractedTexts = json.extracted_texts
-				return values
-			})
+			const extractedTexts = await asJson(getExtractedTexts());
+			update((context) => {
+				context.extractedTexts = extractedTexts;
+				return context;
+			});
 		},
 		pushAction: (action) => {
-			update((values) => {
-				values.actions.push(action)
-				return values
-			})
+			update((context) => {
+				context.actions.push(action);
+				return context;
+			});
 		},
 		removeAction: (index) => {
-			update((values) => {
-				values.actions.splice(index, 1)
-				return values
-			})
+			update((context) => {
+				context.actions.splice(index, 1);
+				return context;
+			});
 		},
 		getDocumentById: (documents, id) => {
-			return documents.find(doc => doc.id === id)
-		}
-	}
+			return documents.items.find((doc) => doc.id === id);
+		},
+	};
 }

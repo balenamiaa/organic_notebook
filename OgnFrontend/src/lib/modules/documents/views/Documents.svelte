@@ -1,63 +1,70 @@
 <script>
-	import { getContext } from 'svelte'
+	import { getContext } from 'svelte';
 	import {
 		deleteDocument,
-		deleteDocumentExtractedText,
+		deleteExtractedTextsForDocument,
+		deleteIdeaRefsForDocument,
 		extractDocumentText,
 		uploadDocument,
-	} from '../api.js'
-	import { documentsKey } from '../stores'
-	import DocumentsSearch from './DocumentsSearch.svelte'
-	import DocumentView from './DocumentView.svelte'
+	} from '../api.js';
+	import { DocumentsContextKey } from '../stores';
+	import DocumentsSearch from './DocumentsSearch.svelte';
+	import DocumentView from './DocumentView.svelte';
 
-	const { documents } = getContext(documentsKey)
-	let currentDoc
-	let currentPage = -1
-	documents.refresh()
-	documents.refreshExtractedTexts()
+	const { documentsContext } = getContext(DocumentsContextKey);
+	let currentDoc;
+	let currentPage = -1;
+	documentsContext.refresh();
+	documentsContext.refreshExtractedTexts();
 
-	$: if ($documents.actions.length > 0) {
-		const index = $documents.actions.length - 1
-		const action = $documents.actions[index]
+	$: if ($documentsContext.actions.length > 0) {
+		const index = $documentsContext.actions.length - 1;
+		const action = $documentsContext.actions[index];
 		switch (action.type) {
 			case 'open-document':
 				{
-					currentDoc = documents.getDocumentById($documents.documents, action.payload.documentId)
-					currentPage = action.payload.pageNumber
+					currentDoc = documentsContext.getDocumentById(
+						$documentsContext.documents,
+						action.payload.documentId,
+					);
+					currentPage = action.payload.pageNumber;
 				}
-				break
+				break;
 		}
-		documents.removeAction(index)
+		documentsContext.removeAction(index);
 	}
 
 	async function onSubmit(event) {
 		try {
-			const files = event.target.elements['files'].files
-			const response = await uploadDocument(files)
+			const files = event.target.elements['files'].files;
+			const response = await uploadDocument(files);
 
 			if (response.status === 200) {
-				await documents.refresh()
+				await documentsContext.refresh();
 			}
 
-			const json = await response.json()
+			const json = await response.json();
 
 			if (json.length > 0) {
-				await Promise.all(json.map((doc) => extractDocumentText(doc.id)))
+				await Promise.all(json.map((doc) => extractDocumentText(doc.id)));
 			}
 		} catch (err) {}
 	}
 	async function onRemove(documentId) {
 		try {
-			await deleteDocumentExtractedText(documentId)
-			const response = await deleteDocument(documentId)
+			await deleteExtractedTextsForDocument(documentId);
+			await deleteIdeaRefsForDocument(documentId);
+
+			const response = await deleteDocument(documentId);
 			if (response.status === 200) {
-				await documents.refresh()
+				await documentsContext.refresh();
 			}
 		} catch (err) {}
 	}
 	async function onExtractText(documentId) {
 		try {
-			extractDocumentText(documentId)
+			extractDocumentText(documentId);
+			documentsContext.refreshExtractedTexts();
 		} catch (err) {}
 	}
 </script>
@@ -73,9 +80,9 @@
 		</div>
 	</form>
 	<h3>List</h3>
-	{#if $documents.documents}
+	{#if $documentsContext.documents.items}
 		<ol>
-			{#each $documents.documents as doc}
+			{#each $documentsContext.documents.items as doc}
 				<li>
 					<span class:selected-document={doc === currentDoc}>
 						{doc.title}

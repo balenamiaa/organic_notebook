@@ -1,23 +1,37 @@
-function create_idea_ref(doc, page, idea)
+function create_idea_ref(doc, page, idea, idea_ref_text)
     req = HTTP.Request()
     req.url = "http://127.0.0.1:8080/api/idea_refs" |> HTTP.URI
     req.method = "POST"
 
     req.body =
-        JSON3.write(p.NewIdeaRef(p.DocumentPage(doc.id, Some(page)), idea.id, "test")) |>
-        Vector{UInt8}
+        JSON3.write(
+            p.NewIdeaRef(p.DocumentPage(doc.id, Some(page)), idea.id, idea_ref_text),
+        ) |> Vector{UInt8}
 
     resp = p.create_idea_ref(req)
     @test resp.status == Status.OK
     created_idea_ref = JSON3.read(HTTP.payload(resp, String), p.IdeaRef)
+    created_idea_ref
+end
 
-    @test created_idea_ref.idea_ref_text == "test"
+function create_idea_ref_and_test(doc, page, idea, idea_ref_text = randstring(8))
+    created_idea_ref = create_idea_ref(doc, page, idea, idea_ref_text)
+
+    @test created_idea_ref.idea_ref_text == idea_ref_text
     @test created_idea_ref.doc_page.document_id == doc.id
     @test something(created_idea_ref.doc_page.page_number) == page
     @test created_idea_ref.idea_ref == idea.id
 
     created_idea_ref
 end
+
+function create_idea_refs_for_document(doc, pages, idea)
+    map(pages) do page
+        create_idea_ref(doc, page, idea, randstring(8))
+    end
+end
+
+const create_idea_refs_for_idea = create_idea_refs_for_document
 
 function get_idea_ref(created_idea_ref)
     id = created_idea_ref.id
@@ -40,8 +54,8 @@ function get_all_idea_refs(created_idea_ref)
 
     resp = p.get_idea_refs(req)
     @test resp.status == Status.OK
-    result = JSON3.read(HTTP.payload(resp, String), Vector{p.IdeaRef})
-    @test last(result) == created_idea_ref
+    result = JSON3.read(HTTP.payload(resp, String), p.PaginatedResult{p.IdeaRef})
+    @test last(result.items) == created_idea_ref
 end
 
 function get_num_idea_refs()
@@ -82,8 +96,8 @@ function get_all_idea_refs_for_idea(created_idea_ref, idea)
     resp = p.get_idea_refs_for_idea(req)
     @test resp.status == Status.OK
 
-    result = JSON3.read(HTTP.payload(resp, String), Vector{p.IdeaRef})
-    @test last(result) == created_idea_ref
+    result = JSON3.read(HTTP.payload(resp, String), p.PaginatedResult{p.IdeaRef})
+    @test last(result.items) == created_idea_ref
     @test fetch(p.get_idea(p.pool(), id)).id == id
 end
 
@@ -131,6 +145,30 @@ function delete_idea_ref(created_idea_ref)
     @test resp.status == Status.OK
 end
 
+function delete_idea_refs_for_document(doc)
+    id = doc.id
+
+    req = HTTP.Request()
+    req.url = "http://127.0.0.1:8080/api/idea_refs/documents/$id" |> HTTP.URI
+    setindex!(req.context, Dict("id" => string(id)), :params)
+    req.method = "DELETE"
+
+    resp = p.delete_idea_refs_for_document(req)
+    @test resp.status == Status.OK
+end
+
+function delete_idea_refs_for_idea(idea)
+    id = idea.id
+
+    req = HTTP.Request()
+    req.url = "http://127.0.0.1:8080/api/idea_refs/ideas/$id" |> HTTP.URI
+    setindex!(req.context, Dict("id" => string(id)), :params)
+    req.method = "DELETE"
+
+    resp = p.delete_idea_refs_for_idea(req)
+    @test resp.status == Status.OK
+end
+
 function get_after_delete_idea_ref(created_idea_ref)
     id = created_idea_ref.id
 
@@ -145,10 +183,10 @@ end
 
 
 @testset "idea_refs endpoint" begin
-    doc = upload_document()
+    doc = upload_documents()
     page = 9
     idea = create_idea()
-    created_idea_ref = create_idea_ref(doc, page, idea)
+    created_idea_ref = create_idea_ref_and_test(doc, page, idea)
     get_idea_ref(created_idea_ref)
     get_all_idea_refs(created_idea_ref)
     num_idea_refs = get_num_idea_refs()
@@ -160,6 +198,15 @@ end
 
     delete_idea_ref(created_idea_ref)
     get_after_delete_idea_ref(created_idea_ref)
-    delete_idea(idea)
+
+    idea_refs_for_idea = create_idea_refs_for_idea(doc, [3, 12, 16, 32], idea)
+    delete_idea_refs_for_idea(idea)
+    foreach(get_after_delete_idea_ref, idea_refs_for_idea)
+    
+    idea_refs_for_document = create_idea_refs_for_document(doc, [4, 6, 8, 1], idea)
+    delete_idea_refs_for_document(doc)
+    foreach(get_after_delete_idea_ref, idea_refs_for_document)
+    
     delete_document(doc)
+    delete_idea(idea)
 end

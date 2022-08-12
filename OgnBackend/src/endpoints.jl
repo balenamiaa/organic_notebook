@@ -1,4 +1,4 @@
-include("endpoints/documents/upload_document.jl")
+include("endpoints/documents/upload_documents.jl")
 include("endpoints/documents/delete_document.jl")
 include("endpoints/documents/get_document.jl")
 include("endpoints/documents/get_documents.jl")
@@ -12,6 +12,8 @@ include("endpoints/ideas/get_num_ideas.jl")
 
 include("endpoints/idea_refs/create_idea_ref.jl")
 include("endpoints/idea_refs/delete_idea_ref.jl")
+include("endpoints/idea_refs/delete_idea_refs_for_document.jl")
+include("endpoints/idea_refs/delete_idea_refs_for_idea.jl")
 include("endpoints/idea_refs/get_idea_ref.jl")
 include("endpoints/idea_refs/get_idea_refs.jl")
 include("endpoints/idea_refs/get_num_idea_refs.jl")
@@ -26,7 +28,7 @@ include("endpoints/extracted_texts/get_extracted_texts.jl")
 include("endpoints/extracted_texts/get_num_extracted_texts.jl")
 
 function register_endpoints!(router)
-    HTTP.register!(router, "POST", "/api/documents", upload_document)
+    HTTP.register!(router, "POST", "/api/documents", upload_documents)
     HTTP.register!(router, "DELETE", "/api/documents/{id}", delete_document)
     HTTP.register!(router, "GET", "/api/documents/{id}", get_document)
     HTTP.register!(router, "GET", "/api/documents", get_documents)
@@ -40,6 +42,13 @@ function register_endpoints!(router)
 
     HTTP.register!(router, "POST", "/api/idea_refs", create_idea_ref)
     HTTP.register!(router, "DELETE", "/api/idea_refs/{id}", delete_idea_ref)
+    HTTP.register!(
+        router,
+        "DELETE",
+        "/api/idea_refs/documents/{id}",
+        delete_idea_refs_for_document,
+    )
+    HTTP.register!(router, "DELETE", "/api/idea_refs/ideas/{id}", delete_idea_refs_for_idea)
     HTTP.register!(router, "GET", "/api/idea_refs/{id}", get_idea_ref)
     HTTP.register!(router, "GET", "/api/idea_refs", get_idea_refs)
     HTTP.register!(router, "GET", "/api/idea_refs//num", get_num_idea_refs)
@@ -54,25 +63,25 @@ function register_endpoints!(router)
     HTTP.register!(
         router,
         "POST",
-        "/api/extracted_texts/document/{id}",
+        "/api/extracted_texts/documents/{id}",
         extract_texts_for_document,
     )
     HTTP.register!(
         router,
         "DELETE",
-        "/api/extracted_texts/document/{id}",
+        "/api/extracted_texts/documents/{id}",
         delete_extracted_texts_for_document,
     )
     HTTP.register!(
         router,
         "GET",
-        "/api/extracted_texts/document/{id}",
+        "/api/extracted_texts/documents/{id}",
         get_extracted_texts_for_document,
     )
     HTTP.register!(
         router,
         "GET",
-        "/api/extracted_texts/document",
+        "/api/extracted_texts/documents",
         get_extracted_texts_for_document_bulk,
     )
     HTTP.register!(router, "GET", "/api/extracted_texts", get_extracted_texts)

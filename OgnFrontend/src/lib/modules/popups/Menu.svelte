@@ -1,5 +1,5 @@
 <script>
-	import { outClickEvent } from '$lib/utils/events/outClickEvent'
+	import { outClickEvent } from '$lib/utils/events/outClickEvent';
 </script>
 
 <div id="root" use:outClickEvent on:outClick>
