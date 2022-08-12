@@ -3,7 +3,7 @@ function get_extracted_texts_for_document_bulk(req::HTTP.Request)
 
     ids = [
         DocumentId(tryparse(Int, x)) for
-        x in split(body, ",") if tryparse(Int, x) !== nothing
+        x in split(body, " ") if tryparse(Int, x) !== nothing
     ]
 
     extracted_texts = get_extracted_texts_for_document_bulk(pool(), ids) |> fetch

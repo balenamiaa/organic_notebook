@@ -1,36 +1,49 @@
-import { contentType, deleteRequest, getRequest, postRequest } from '$lib/utils/api.js'
+import {
+	contentType,
+	deleteRequest,
+	getPaginatedRequest,
+	getRequest,
+	postRequest,
+} from '$lib/utils/api.js';
 
-export function getIdeas(page = 0, pageSize = 10) {
-	return getRequest(`/ideas?page_num=${page}&page_size=${pageSize}`)
+export function getIdeas(options = {}) {
+	return getPaginatedRequest('/ideas', options);
 }
 
 export function getIdeaEntry(id) {
-	return getRequest(`/ideas/${id}`)
+	return getRequest(`/ideas/${id}`);
 }
 
 export function createIdea(data) {
 	return postRequest(`/ideas`, {
 		body: JSON.stringify(data),
 		headers: { ...contentType.json },
-	})
+	});
 }
 
 export function createIdeaReference(data) {
 	return postRequest(`/idea_refs`, {
 		body: JSON.stringify(data),
 		headers: { ...contentType.json },
-	})
+	});
 }
 
 export function deleteIdea(ideaId) {
-	return deleteRequest(`/ideas/${ideaId}`)
+	return deleteRequest(`/ideas/${ideaId}`);
 }
 
 export function deleteIdeaRef(ideaRefId) {
-	return deleteRequest(`/idea_refs/${ideaRefId}`)
-
+	return deleteRequest(`/idea_refs/${ideaRefId}`);
 }
 
-export function getIdeaRefs(ideaId, page = 0, pageSize = 10) {
-	return getRequest(`/idea_refs_for_idea/${ideaId}?page_num=${page}&page_size=${pageSize}`)
+export function deleteIdeaRefsForIdea(ideaId) {
+	return deleteRequest(`/idea_refs/ideas/${ideaId}`);
+}
+
+export function getIdeaRefs(options = {}) {
+	return getPaginatedRequest(`/idea_refs`, options);
+}
+
+export function getIdeaRefsForIdea(ideaId, options = {}) {
+	return getPaginatedRequest(`/idea_refs/ideas/${ideaId}`, options);
 }

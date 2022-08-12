@@ -1,9 +1,9 @@
 <script>
-	import { createEventDispatcher } from 'svelte'
-	import CloseSvg from '$lib/utils/icons/svg/CloseSvg.svelte'
-	import DialogBase from './DialogBase.svelte'
+	import { createEventDispatcher } from 'svelte';
+	import CloseSvg from '$lib/utils/icons/svg/CloseSvg.svelte';
+	import DialogBase from './DialogBase.svelte';
 
-	const dispatch = createEventDispatcher()
+	const dispatch = createEventDispatcher();
 </script>
 
 <DialogBase on:close>
@@ -14,7 +14,7 @@
 		<button
 			class="button-base"
 			on:click={() => {
-				dispatch('close')
+				dispatch('close');
 			}}
 		>
 			<CloseSvg />
@@ -31,6 +31,6 @@
 		font-weight: bold;
 		flex: 1 1;
 		text-align: center;
-      padding-right: calc(6 * var(--spacing));
+		padding-right: calc(6 * var(--spacing));
 	}
 </style>

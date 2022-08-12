@@ -33,8 +33,8 @@ function get_all_ideas(created_idea)
 
     resp = p.get_ideas(req)
     @test resp.status == Status.OK
-    got_ideas = JSON3.read(HTTP.payload(resp, String), Vector{p.Idea})
-    @test last(got_ideas) == created_idea
+    result = JSON3.read(HTTP.payload(resp, String), p.PaginatedResult{p.Idea})
+    @test last(result.items) == created_idea
 end
 
 function get_num_ideas()

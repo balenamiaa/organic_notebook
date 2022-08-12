@@ -47,8 +47,8 @@ StructTypes.StructType(::Type{DriveFile1}) = StructTypes.Struct()
         path,
         wrapped_headers,
         body;
-        status_exception=false,
-        redirect=false
+        status_exception = false,
+        redirect = false,
     )
 end
 
@@ -60,7 +60,6 @@ function refresh_token()
             "grant_type" => "refresh_token",
             "refresh_token" => refresh_token,
             "client_id" => ENV["ONEDRIVE_CLIENT_ID"],
-            #"client_secret" => ENV["ONEDRIVE_CLIENT_SECRET"],
             "redirect_uri" => ENV["ONEDRIVE_REDIRECT_URL"],
         )
         e = HTTP.escape
@@ -80,7 +79,7 @@ function refresh_token()
     ENV["ONEDRIVE_REFRESH_TOKEN"] = jobj["refresh_token"]
 end
 
-function do_request(path, method, headers, body; root="https://graph.microsoft.com/v1.0")
+function do_request(path, method, headers, body; root = "https://graph.microsoft.com/v1.0")
 
     first_attempt = __do_request_inner(path, method, headers, body, root)
 
@@ -122,7 +121,7 @@ end
 
 function __upload_file_request(upload_session, chunk, total_length, chunk_start)
     headers = __upload_file_headers(chunk, total_length, chunk_start)
-    do_request(upload_session.uploadUrl, "PUT", headers, chunk; root="")
+    do_request(upload_session.uploadUrl, "PUT", headers, chunk; root = "")
 end
 
 function __upload_file_extract_missing_chunks(resp, total_length)
@@ -266,6 +265,6 @@ convert_file(file::IOStream, out, conversion) =
     convert_document(file, filesize(file), out, conversion)
 
 convert_file(filename::AbstractString, out, conversion) =
-    open(filename; read=true) do io
+    open(filename; read = true) do io
         convert_file(io, out, conversion)
     end

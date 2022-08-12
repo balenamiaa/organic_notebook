@@ -3,7 +3,7 @@ import Term: tprintln
 using Downloads, ProgressMeter, Pkg.Artifacts, Tar, CodecZlib, SHA
 
 
-const NGINX_VERSION = "1.23.1"
+const WINDOWS_BINARY_NGINX_VERSION = "1.23.1"
 const WINDOWS_BINARY_DOWNLOAD_URL = "https://github.com/balenamiaa/organic_notebook/releases/download/0.1.0/nginx-1.23.1-x86_64-windows.tar.gz"
 
 
@@ -36,6 +36,8 @@ http {
     server {
         server_name  localhost;
         listen 80;
+
+        add_header Access-Control-Allow-Origin "*";
 
         location /api/ {
             
@@ -162,38 +164,41 @@ function install_nginx(nginx_origin_bin_path)
     nginx_bin_path
 end
 
-if isdir(ENV["OGN_NGINX_INSTALL_DIR"])
-    nginx_folder = "nginx-$NGINX_VERSION"
-    ext = @static if Sys.iswindows()
-        ".exe"
-    elseif Sys.islinux()
-        ""
-    else
-        error("Unsupported OS")
-    end
-
-    ENV["OGN_NGINX_EXECUTABLE_PATH"] =
-        joinpath(ENV["OGN_NGINX_INSTALL_DIR"], nginx_folder, "nginx$ext")
-end
-
 
 function run()
-    nginx_origin_bin_path = @static if Sys.iswindows()
-        download_nginx_windows()
-    else
+    if isdir(ENV["OGN_NGINX_INSTALL_DIR"])
+        nginx_install_dir = ENV["OGN_NGINX_INSTALL_DIR"]
         tprintln(
-            "{blue}Automatic acquisition of nginx binaries is not supported for: {green}$(Sys.KERNEL){/green}{/blue}",
+            "{green}OGN_NGINX_INSTALL_DIR is set to {blue}$(nginx_install_dir){/blue}. Assuming it's setup correctly thus using it. {/green}",
         )
-        tprintln("{blue}Please manually enter path to nginx binary:{/blue}")
-        nginx_origin_bin_path = readline()
-    end
 
-    if !isfile(nginx_origin_bin_path)
-        error("nginx not found at: $(nginx_origin_bin_path)")
-    end
+        ext = @static if Sys.iswindows()
+            ".exe"
+        elseif Sys.islinux()
+            ""
+        else
+            error("Unsupported OS")
+        end
 
-    nginx_binpath = install_nginx(nginx_origin_bin_path)
-    ENV["OGN_NGINX_EXECUTABLE_PATH"] = nginx_binpath
+        ENV["OGN_NGINX_EXECUTABLE_PATH"] = joinpath(nginx_install_dir, "nginx$ext")
+    else
+        nginx_origin_bin_path = @static if Sys.iswindows()
+            download_nginx_windows()
+        else
+            tprintln(
+                "{blue}Automatic acquisition of nginx binaries is not supported for: {green}$(Sys.KERNEL){/green}{/blue}",
+            )
+            tprintln("{blue}Please manually enter path to nginx binary:{/blue}")
+            nginx_origin_bin_path = readline()
+        end
+
+        if !isfile(nginx_origin_bin_path)
+            error("nginx not found at: $(nginx_origin_bin_path)")
+        end
+
+        nginx_binpath = install_nginx(nginx_origin_bin_path)
+        ENV["OGN_NGINX_EXECUTABLE_PATH"] = nginx_binpath
+    end
 
     nothing
 end

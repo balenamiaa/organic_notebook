@@ -1,7 +1,7 @@
-function upload_document()
+function upload_documents()
     form = HTTP.Form(
         Dict("file1" =>
-            open(joinpath(@__DIR__(), "../Anas's Grimoire of Red Magic.pdf"))),
+                open(joinpath(@__DIR__(), "../Anas's Grimoire of Red Magic.pdf"))),
     )
 
     req = HTTP.Request()
@@ -9,7 +9,7 @@ function upload_document()
     req.method = "POST"
     req.headers = ["Content-Type" => "multipart/form-data; boundary=$(form.boundary)"]
     req.body = read(form)
-    resp = p.upload_document(req)
+    resp = p.upload_documents(req)
     @test resp.status == Status.OK
     created_documents = JSON3.read(HTTP.payload(resp, String), Vector{p.Document})
     @test length(created_documents) == 1
@@ -19,8 +19,10 @@ end
 
 function upload_docx_document()
     form = HTTP.Form(
-        Dict("file1" =>
-            open(joinpath(@__DIR__(), "../Anas's Grimoire of Black Magic.docx"))),
+        Dict(
+            "file1" =>
+                open(joinpath(@__DIR__(), "../Anas's Grimoire of Black Magic.docx")),
+        ),
     )
 
     req = HTTP.Request()
@@ -28,7 +30,7 @@ function upload_docx_document()
     req.method = "POST"
     req.headers = ["Content-Type" => "multipart/form-data; boundary=$(form.boundary)"]
     req.body = read(form)
-    resp = p.upload_document(req)
+    resp = p.upload_documents(req)
     @test resp.status == Status.OK
     created_documents = JSON3.read(HTTP.payload(resp, String), Vector{p.Document})
     @test length(created_documents) == 1
@@ -38,7 +40,8 @@ function upload_docx_document()
     converted_filepath = p.get_filepath_for_document(created_document.id)
     reference_filepath = joinpath(@__DIR__(), "../Anas's Grimoire of Black Magic.pdf")
 
-    text_extractor_checksum(input) = p.extract_texts_for_document(input, OgnBackend.PopplerPdfToText) |> join |> crc32c
+    text_extractor_checksum(input) =
+        p.extract_texts_for_document(input, OgnBackend.PopplerPdfToText) |> join |> crc32c
 
     converted_checksum = open(text_extractor_checksum, converted_filepath)
     reference_checksum = open(text_extractor_checksum, reference_filepath)
@@ -70,8 +73,8 @@ function get_all_documents(created_document)
 
     resp = p.get_documents(req)
     @test resp.status == Status.OK
-    got_documents = JSON3.read(HTTP.payload(resp, String), Vector{p.Document})
-    @test last(got_documents) == created_document
+    result = JSON3.read(HTTP.payload(resp, String), p.PaginatedResult{p.Document})
+    @test last(result.items) == created_document
 end
 
 function get_num_documents()
@@ -126,7 +129,7 @@ end
 
 
 @testset "documents endpoint" begin
-    created_document = upload_document()
+    created_document = upload_documents()
     get_document(created_document)
     get_all_documents(created_document)
     num_documents = get_num_documents()
@@ -134,6 +137,8 @@ end
     delete_document(created_document)
     get_after_delete_document(created_document)
 
-    created_docx_document = upload_docx_document()
-    delete_document(created_docx_document)
+    if !haskey(ENV, "CI")
+        created_docx_document = upload_docx_document()
+        delete_document(created_docx_document)
+    end
 end

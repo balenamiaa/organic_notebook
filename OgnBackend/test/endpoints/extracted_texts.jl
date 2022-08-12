@@ -2,7 +2,7 @@ function extract_texts_for_document(document, lastpage_content)
     id = document.id
 
     req = HTTP.Request()
-    req.url = "http://127.0.0.1:8080/api/extracted_texts/document/$id" |> HTTP.URI
+    req.url = "http://127.0.0.1:8080/api/extracted_texts/documents/$id" |> HTTP.URI
     setindex!(req.context, Dict("id" => string(id)), :params)
     req.method = "POST"
 
@@ -20,7 +20,7 @@ function get_extracted_texts_for_document(document, extracted_texts_for_document
     id = document.id
 
     req = HTTP.Request()
-    req.url = "http://127.0.0.1:8080/api/extracted_texts/document/$id" |> HTTP.URI
+    req.url = "http://127.0.0.1:8080/api/extracted_texts/documents/$id" |> HTTP.URI
     setindex!(req.context, Dict("id" => string(id)), :params)
     req.method = "GET"
 
@@ -36,7 +36,7 @@ function get_extracted_texts_for_document_bulk(document, extracted_texts_for_doc
 
     res_only_actual_document = let
         req = HTTP.Request()
-        req.url = "http://127.0.0.1:8080/api/extracted_texts/document" |> HTTP.URI
+        req.url = "http://127.0.0.1:8080/api/extracted_texts/documents" |> HTTP.URI
         req.body = Vector{UInt8}(string(id))
         req.method = "GET"
 
@@ -50,10 +50,10 @@ function get_extracted_texts_for_document_bulk(document, extracted_texts_for_doc
 
     let
         req = HTTP.Request()
-        req.url = "http://127.0.0.1:8080/api/extracted_texts/document" |> HTTP.URI
-        req.body = Vector{UInt8}(string(id, ", 0"))
+        req.url = "http://127.0.0.1:8080/api/extracted_texts/documents" |> HTTP.URI
+        req.body = Vector{UInt8}(string(id, " 0"))
         # actual document id + invalid id (0) to test bulk. there should be no extra documents for document id 0
-        # which will never exist in the database
+        # which will never exist in the database (for testing at least)
         req.method = "GET"
 
         resp = p.get_extracted_texts_for_document_bulk(req)
@@ -72,8 +72,8 @@ function get_all_extracted_texts(extracted_texts_for_document)
 
     resp = p.get_extracted_texts(req)
     @test resp.status == Status.OK
-    result = JSON3.read(HTTP.payload(resp, String), Vector{p.ExtractedText})
-    @test all(x ∈ result for x in extracted_texts_for_document)
+    result = JSON3.read(HTTP.payload(resp, String), p.PaginatedResult{p.ExtractedText})
+    @test all(x ∈ result.items for x in extracted_texts_for_document)
 end
 
 function get_num_extracted_texts()
@@ -106,7 +106,7 @@ function delete_extracted_texts_for_document(document)
     id = document.id
 
     req = HTTP.Request()
-    req.url = "http://127.0.0.1:8080/api/extracted_texts/document/$id" |> HTTP.URI
+    req.url = "http://127.0.0.1:8080/api/extracted_texts/documents/$id" |> HTTP.URI
     setindex!(req.context, Dict("id" => string(id)), :params)
     req.method = "DELETE"
 
@@ -118,7 +118,7 @@ end
 
 
 @testset "extracted texts" begin
-    document = upload_document()
+    document = upload_documents()
     lastpage_content = p.extract_texts_for_document(document.id, p.PopplerPdfToText)[end]
     @test lastpage_content |> isempty |> !
     extracted_texts_for_document = extract_texts_for_document(document, lastpage_content)

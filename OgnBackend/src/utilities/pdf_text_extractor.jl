@@ -28,14 +28,13 @@ function extract_texts_for_document(input::IO, ::Type{PopplerPdfToText})
     output = IOBuffer()
 
     try
-        run(
-            pipeline(
-                `$(Poppler_jll.pdftotext()) - -`; stdin=input, stdout=output
-            )
-        )
-    catch e
-        @show e
+        run(pipeline(`$(Poppler_jll.pdftotext()) - -`; stdin = input, stdout = output))
+    catch
         return nothing
+    end
+
+    while output.size == 0
+        sleep(0.5)
     end
 
     output_bytes = take!(output)
@@ -43,9 +42,7 @@ function extract_texts_for_document(input::IO, ::Type{PopplerPdfToText})
 
     current_position = 1
     for new_page_carriage in findall(==('\f' |> UInt8), output_bytes)
-        push!(page_texts,
-            String(output_bytes[current_position:new_page_carriage])
-        )
+        push!(page_texts, String(output_bytes[current_position:new_page_carriage]))
 
         current_position = new_page_carriage + 1
     end
@@ -57,7 +54,7 @@ function extract_texts_for_document(document_id::DocumentId, ::Type{PopplerPdfTo
     filepath = get_filepath_for_document(document_id)
     filepath === nothing && return nothing
 
-    open(filepath; read=true) do input
+    open(filepath; read = true) do input
         extract_texts_for_document(input, PopplerPdfToText)
     end
 end

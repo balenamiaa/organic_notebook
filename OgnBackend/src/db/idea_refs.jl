@@ -160,6 +160,27 @@ end
 end
 
 
+@inline function delete_idea_refs_for_document(pool, document_id::DocumentId)
+    query = raw"DELETE FROM idea_refs WHERE document_id = $1;"
+    result = async_execute(pool, query, (document_id,))
+
+    @async begin
+        result = result |> fetch
+        nothing
+    end
+end
+
+@inline function delete_idea_refs_for_idea(pool, idea_id::IdeaId)
+    query = raw"DELETE FROM idea_refs WHERE idea_ref = $1;"
+    result = async_execute(pool, query, (idea_id,))
+
+    @async begin
+        result = result |> fetch
+        nothing
+    end
+end
+
+
 @inline function get_idea_refs_for_idea(pool, idea_id::IdeaId)
     query = raw"SELECT * FROM idea_refs WHERE idea_ref = $1;"
     result = async_execute(pool, query, (idea_id,))

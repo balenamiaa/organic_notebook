@@ -64,7 +64,6 @@ function get_auth_code(scopes = ["files.readwrite.all", "offline_access"])
                 "redirect_uri" => redirect_url,
                 "code" => auth_token,
                 "grant_type" => "authorization_code",
-                #"client_secret" => ENV["ONEDRIVE_CLIENT_SECRET"]::String,
             )
             e = HTTP.escape
             join(map(x -> "$(e(x[1]))=$(e(x[2]))", form_data), "&")
