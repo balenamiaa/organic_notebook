@@ -4,14 +4,17 @@ using HTTP, JSON3, DefaultApplication
 import Term: tprintln
 
 
-get_auth_token(client_id, scope, redirect_url) = HTTP.get("https://login.microsoftonline.com/common/oauth2/v2.0/authorize"; query=Dict(
-    "client_id" => client_id,
-    "scope" => scope,
-    "response_type" => "code",
-    "redirect_uri" => redirect_url
-))
+get_auth_token(client_id, scope, redirect_url) = HTTP.get(
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
+    query = Dict(
+        "client_id" => client_id,
+        "scope" => scope,
+        "response_type" => "code",
+        "redirect_uri" => redirect_url,
+    ),
+)
 
-function get_auth_code(scopes=["files.readwrite.all", "offline_access"])
+function get_auth_code(scopes = ["files.readwrite.all", "offline_access"])
 
     client_id = ENV["ONEDRIVE_CLIENT_ID"]
     redirect_url = ENV["ONEDRIVE_REDIRECT_URL"]
@@ -48,7 +51,9 @@ function get_auth_code(scopes=["files.readwrite.all", "offline_access"])
     DefaultApplication.open(redirect_url)
 
     tprintln("{blue}Please visit the redirected url and enter your credentials{/blue}")
-    tprintln("{blue}In the case there've been no redirection, open the following link: {green}$redirect_url{/green}{/blue}")
+    tprintln(
+        "{blue}In the case there've been no redirection, open the following link: {green}$redirect_url{/green}{/blue}",
+    )
 
     wait(server)
 
@@ -65,13 +70,17 @@ function get_auth_code(scopes=["files.readwrite.all", "offline_access"])
             join(map(x -> "$(e(x[1]))=$(e(x[2]))", form_data), "&")
         end
 
-        resp = HTTP.post("https://login.microsoftonline.com/common/oauth2/v2.0/token", ("Content-Type" => "application/x-www-form-urlencoded",), body)
+        resp = HTTP.post(
+            "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+            ("Content-Type" => "application/x-www-form-urlencoded",),
+            body,
+        )
         JSON3.read(resp.body |> String)
     end
 
     (;
-        access_token=resp["access_token"]::String,
-        refresh_token=resp["refresh_token"]::String
+        access_token = resp["access_token"]::String,
+        refresh_token = resp["refresh_token"]::String,
     )
 end
 
@@ -79,7 +88,9 @@ function set_env!(access_token, refresh_token)
     ENV["ONEDRIVE_ACCESS_TOKEN"] = access_token
     ENV["ONEDRIVE_REFRESH_TOKEN"] = refresh_token
 
-    tprintln("{green}Environment variables ONEDRIVE_ACCESS_TOKEN and ONEDRIVE_REFRESH_TOKEN set{/green}")
+    tprintln(
+        "{green}Environment variables ONEDRIVE_ACCESS_TOKEN and ONEDRIVE_REFRESH_TOKEN set{/green}",
+    )
     nothing
 end
 

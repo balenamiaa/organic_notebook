@@ -165,7 +165,10 @@ end
     end
 end
 
-@inline function get_extracted_texts_for_document_bulk(pool, document_ids::Vector{DocumentId})
+@inline function get_extracted_texts_for_document_bulk(
+    pool,
+    document_ids::Vector{DocumentId},
+)
     query =
         raw"SELECT * FROM extracted_texts WHERE document_id = ANY($1) ORDER BY document_page ASC;"
 

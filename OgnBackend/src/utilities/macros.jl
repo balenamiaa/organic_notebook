@@ -13,16 +13,16 @@ macro impl_id_wrapper(id_tys...)
     for id_ty in id_tys
         impl = quote
             StructTypes.StructType(::Type{$id_ty}) = StructTypes.NumberType()
-            StructTypes.numbertype(::Type{$id_ty}) = Int32
+            StructTypes.numbertype(::Type{$id_ty}) = UInt32
 
             function Base.show(io::IO, x::$id_ty)
                 write(io, string(x.id))
             end
 
-            function Base.convert(::Type{Int32}, x::$id_ty)
+            function Base.convert(::Type{UInt32}, x::$id_ty)
                 x.id
             end
-            Base.Int32(x::$id_ty) = x.id
+            Base.UInt32(x::$id_ty) = x.id
 
         end
         push!(impls, impl)
@@ -56,7 +56,7 @@ macro extract_id(req, IdType)
             id = HTTP.getparams($(esc(req)))["id"]
             id === nothing && return HTTP.Response(Status.BADREQUEST, "missing id")
 
-            id = tryparse(Int32, id)
+            id = tryparse(UInt32, id)
             id === nothing && return HTTP.Response(Status.BADREQUEST, "invalid id")
             $(IdType)(id)
         end

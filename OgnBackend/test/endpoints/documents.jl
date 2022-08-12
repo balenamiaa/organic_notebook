@@ -1,7 +1,26 @@
 function upload_document()
     form = HTTP.Form(
         Dict("file1" =>
-                open(joinpath(@__DIR__(), "../Anas's Grimoire of Red Magic.pdf"))),
+            open(joinpath(@__DIR__(), "../Anas's Grimoire of Red Magic.pdf"))),
+    )
+
+    req = HTTP.Request()
+    req.url = "http://127.0.0.1:8080/api/documents" |> HTTP.URI
+    req.method = "POST"
+    req.headers = ["Content-Type" => "multipart/form-data; boundary=$(form.boundary)"]
+    req.body = read(form)
+    resp = p.upload_document(req)
+    @test resp.status == Status.OK
+    created_documents = JSON3.read(HTTP.payload(resp, String), Vector{p.Document})
+    @test length(created_documents) == 1
+
+    created_documents |> first
+end
+
+function upload_docx_document()
+    form = HTTP.Form(
+        Dict("file1" =>
+            open(joinpath(@__DIR__(), "../Anas's Grimoire of Black Magic.docx"))),
     )
 
     req = HTTP.Request()
@@ -102,4 +121,7 @@ end
     get_paginated_documents(created_document, num_documents)
     delete_document(created_document)
     get_after_delete_document(created_document)
+
+    created_docx_document = upload_docx_document()
+    delete_document(created_docx_document)
 end
