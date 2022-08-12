@@ -63,11 +63,11 @@ function upload_document(req::HTTP.Request)
         fetch(document_exists(pool(), DocumentId(id))) && continue
 
         open(
-            joinpath(Globals.DB_DOCUMENTS_DIRPATH, "$(id).$ext");
+            joinpath(Globals.DB_DOCUMENTS_DIRPATH, "$(id).pdf");
             create=true,
             write=true
         ) do io
-            write(io, bytes_collected)
+            write(io, pdf_bytes)
         end
 
         doc = Document(DocumentId(id), title, ext)

@@ -106,5 +106,5 @@ end
 
 @inline function get_filepath_for_document(document_id::DocumentId)
     path = joinpath(Globals.DB_DOCUMENTS_DIRPATH, "$document_id.pdf")
-    isfile(path) ? path : nothing
+    isfile(path) ? abspath(path) : nothing
 end

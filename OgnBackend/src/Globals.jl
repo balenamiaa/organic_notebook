@@ -1,7 +1,7 @@
 module Globals
 
 export pool
-import OgnBackend: PgPool, @_dbg
+import OgnBackend: PgPool, @_dbg, Poppler_jll
 
 @_dbg "debug" begin
     DB_HOST::String = ""

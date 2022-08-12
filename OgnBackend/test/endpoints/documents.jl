@@ -33,7 +33,19 @@ function upload_docx_document()
     created_documents = JSON3.read(HTTP.payload(resp, String), Vector{p.Document})
     @test length(created_documents) == 1
 
-    created_documents |> first
+    created_document = created_documents |> first
+
+    converted_filepath = p.get_filepath_for_document(created_document.id)
+    reference_filepath = joinpath(@__DIR__(), "../Anas's Grimoire of Black Magic.pdf")
+
+    text_extractor_checksum(input) = p.extract_texts_for_document(input, OgnBackend.PopplerPdfToText) |> join |> crc32c
+
+    converted_checksum = open(text_extractor_checksum, converted_filepath)
+    reference_checksum = open(text_extractor_checksum, reference_filepath)
+
+    @test converted_checksum == reference_checksum
+
+    created_document
 end
 
 function get_document(created_document)
