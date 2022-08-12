@@ -3,7 +3,23 @@ function extract_texts_for_document(req::HTTP.Request)
     fetch(document_exists(pool(), id)) ||
         return HTTP.Response(Status.BADREQUEST, "document not found")
 
-    texts = extract_texts_for_document(id)
+
+    query_params = HTTP.queryparams(req.url)
+    @inline get_query_params(key) = haskey(query_params, key) ? query_params[key] : nothing
+
+    extraction_method = if (extraction_method_str = get_query_params("extraction_method"); extraction_method_str) === nothing
+        PopplerPdfToText
+    else
+        if extraction_method_str == "poppler"
+            PopplerPdfToText
+        elseif extraction_method_str == "julia"
+            JuliaPdfToText
+        else
+            return HTTP.Response(Status.BADREQUEST, "invalid extraction method")
+        end
+    end
+
+    texts = extract_texts_for_document(id, extraction_method)
     new_extracted_texts = [
         NewExtractedText(text, DocumentPage(id, Some(page))) for
         (page, text) in enumerate(texts)

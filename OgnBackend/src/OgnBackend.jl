@@ -13,7 +13,8 @@ using HTTP,
     REPL,
     ThreadPools,
     Downloads,
-    Random
+    Random,
+    Poppler_jll
 
 
 include("../env.jl")
@@ -89,7 +90,7 @@ function main()
     @eval Globals begin
         using HTTP
         global SERVER =
-            HTTP.serve!($multithreading_handler, OGN_SERVER_PORT; reuseaddr = true)
+            HTTP.serve!($multithreading_handler, OGN_SERVER_PORT; reuseaddr=true)
     end
     tprintln("{green}Listening on port {blue}$(Globals.OGN_SERVER_PORT){/blue}{/green}")
 
@@ -99,7 +100,7 @@ end
 function handle_nginx()
     options = ["start nginx server", "reload nginx configuration"]
 
-    menu = REPL.TerminalMenus.RadioMenu(options, pagesize = 4)
+    menu = REPL.TerminalMenus.RadioMenu(options, pagesize=4)
 
     choice = REPL.TerminalMenus.request("Choose an option:", menu)
 
@@ -149,7 +150,7 @@ function reload_nginx()
 
         err = IOBuffer()
         try
-            run(pipeline(`$nginx -s reload`; stderr = err); wait = true)
+            run(pipeline(`$nginx -s reload`; stderr=err); wait=true)
         catch
             tprintln(
                 "{red}nginx reload failed: {blue}$(err |> take! |> String){/blue}{/red}",

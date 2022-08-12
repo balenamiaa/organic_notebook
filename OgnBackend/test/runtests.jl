@@ -1,5 +1,5 @@
 using OgnBackend
-using Test, JET, Aqua, LibPQ, HTTP, JSON3
+using Test, JET, Aqua, LibPQ, HTTP, JSON3, CRC32c
 import OgnBackend.Status
 
 

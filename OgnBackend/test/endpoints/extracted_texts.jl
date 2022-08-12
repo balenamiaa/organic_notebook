@@ -119,7 +119,7 @@ end
 
 @testset "extracted texts" begin
     document = upload_document()
-    lastpage_content = p.extract_texts_for_document(document.id)[end]
+    lastpage_content = p.extract_texts_for_document(document.id, p.PopplerPdfToText)[end]
     @test lastpage_content |> isempty |> !
     extracted_texts_for_document = extract_texts_for_document(document, lastpage_content)
     get_extracted_texts_for_document(document, extracted_texts_for_document)
